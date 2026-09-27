@@ -1,255 +1,291 @@
 import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 
-export default function VolunteerDashboard() {
-  const { user }    = useAuth()
-  const [pickups, setPickups]     = useState([])
-  const [available, setAvailable] = useState([])
-  const [loading, setLoading]     = useState(true)
+const S = { fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }
 
-  const fetchAll = async () => {
+function SideNav({ user, active }) {
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+  const links = [
+    { id: 'home', icon: 'home', label: 'Home Page', to: '/' },
+    { id: 'dashboard', icon: 'electric_moped', label: 'Volunteer Hub', to: '/volunteer' },
+    { id: 'board', icon: 'lunch_dining', label: 'Food Board', to: '/donations' },
+  ]
+  if (user?.role === 'admin') {
+    links.push({ id: 'admin', icon: 'admin_panel_settings', label: 'Admin Console', to: '/admin' })
+  }
+  return (
+    <aside className="fixed left-0 top-0 h-full w-64 flex flex-col justify-between py-6 px-4 z-40"
+      style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(20px)', borderRight: '1px solid rgba(188,202,192,0.3)' }}>
+      <div>
+        <Link to="/" className="flex items-center gap-3 px-3 mb-6">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(0,105,72,0.1)' }}>
+            <span className="material-symbols-outlined text-2xl" style={{ color: '#006948' }}>eco</span>
+          </div>
+          <div>
+            <span className="block font-bold text-base tracking-tight" style={{ ...S, color: '#006948' }}>SharePlate</span>
+            <span className="block text-[11px] text-[#6d7a72]">Eco-Rescue Hub</span>
+          </div>
+        </Link>
+
+        {/* Volunteer mini badge */}
+        <div className="rounded-xl border p-3 mb-5 flex items-center gap-3"
+          style={{ background: 'rgba(242,243,255,0.7)', borderColor: 'rgba(188,202,192,0.3)' }}>
+          <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0" style={{ background: '#eaedff', border: '2px solid rgba(0,105,72,0.2)' }}>
+            <span className="material-symbols-outlined text-2xl absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ color: '#006948' }}>directions_bike</span>
+            <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white" style={{ background: '#006948' }} />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-[#131b2e]">{user?.firstName} {user?.lastName}</h4>
+            <span className="text-xs font-semibold" style={{ color: '#006948' }}>Volunteer • Level 1</span>
+          </div>
+        </div>
+
+        <nav className="space-y-1">
+          {links.map(l => (
+            <Link key={l.id} to={l.to}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all"
+              style={active === l.id ? { background: 'rgba(108,248,187,0.35)', color: '#00714d' } : { color: '#3d4a42' }}
+              onMouseEnter={e => { if (active !== l.id) e.currentTarget.style.background = 'rgba(234,237,255,0.6)' }}
+              onMouseLeave={e => { if (active !== l.id) e.currentTarget.style.background = 'transparent' }}>
+              <span className="material-symbols-outlined text-xl">{l.icon}</span>
+              <span>{l.label}</span>
+            </Link>
+          ))}
+        </nav>
+      </div>
+      <button onClick={() => { logout(); navigate('/') }} className="w-full flex items-center gap-3 px-4 py-3 rounded-full text-sm font-semibold text-[#3d4a42] hover:bg-red-50 hover:text-red-600 transition-all text-left">
+        <span className="material-symbols-outlined text-xl">logout</span>
+        Sign Out
+      </button>
+    </aside>
+  )
+}
+
+const BADGES = [
+  { icon: 'emoji_events', label: 'First Rescue', desc: 'Completed your first delivery', earned: true, color: '#825100', bg: 'rgba(255,221,184,0.4)' },
+  { icon: 'local_fire_department', label: '5-Day Streak', desc: 'Active 5 days in a row', earned: true, color: '#dc2626', bg: 'rgba(255,218,214,0.4)' },
+  { icon: 'electric_moped', label: 'Speed Runner', desc: 'Sub-30min delivery', earned: false, color: '#006948', bg: 'rgba(234,237,255,0.5)' },
+  { icon: 'spa', label: 'Zero Waste Hero', desc: '100+ meals rescued', earned: false, color: '#006948', bg: 'rgba(234,237,255,0.5)' },
+]
+
+export default function VolunteerDashboard() {
+  const { user } = useAuth()
+  const [donations, setDonations] = useState([])
+  const [myDeliveries, setMyDeliveries] = useState([])
+  const [stats, setStats] = useState({ totalDeliveries: 0, mealsDelivered: 0, kmRidden: 0, co2Saved: 0 })
+  const [loading, setLoading] = useState(true)
+
+  const fetchData = () => {
     setLoading(true)
-    try {
-      const [{ data: mine }, { data: avail }] = await Promise.all([
-        api.get('/volunteers/my-pickups'),
-        api.get('/donations?status=claimed'),
-      ])
-      setPickups(mine)
-      setAvailable(avail.filter(d => !d.volunteer))
-    } catch { toast.error('Failed to load pickup data') }
-    setLoading(false)
+    api.get('/donations').then(({ data }) => {
+      setDonations(data)
+      const inProgress = data.filter(d => d.status === 'claimed' || d.status === 'in_transit')
+      const delivered = data.filter(d => d.status === 'delivered')
+      setMyDeliveries(inProgress)
+      const total = delivered.length
+      const meals = delivered.reduce((a, d) => a + (Number(d.quantity) || 0), 0)
+      setStats({ totalDeliveries: total, mealsDelivered: meals, kmRidden: Math.floor(total * 3.4), co2Saved: Math.floor(meals * 0.5) })
+    }).catch(() => {}).finally(() => setLoading(false))
   }
 
-  useEffect(() => { fetchAll() }, [])
+  useEffect(() => { fetchData() }, [])
+
+  const handlePickup = async (id) => {
+    try {
+      await api.patch(`/donations/${id}/transit`)
+      toast.success('📍 Pickup confirmed! Navigate to the donor location.')
+      fetchData()
+    } catch (err) { toast.error(err.response?.data?.error || 'Failed') }
+  }
 
   const handleDeliver = async (id) => {
     try {
       await api.patch(`/donations/${id}/deliver`)
-      toast.success('✅ Marked as delivered! Great job!')
-      fetchAll()
-    } catch (err) { toast.error(err.response?.data?.error || 'Could not mark delivered') }
+      toast.success('✅ Delivery marked as complete! Amazing work 🌱')
+      fetchData()
+    } catch (err) { toast.error(err.response?.data?.error || 'Failed') }
   }
 
-  const done   = pickups.filter(d => d.status === 'delivered').length
-  const active = pickups.filter(d => d.status === 'in_transit')
-  const totalMeals = pickups.reduce((a, d) => a + (d.quantity || 0), 0)
+  const available = donations.filter(d => d.status === 'available').slice(0, 4)
 
-  const stats = [
-    { icon: '🚴', label: 'Total Pickups',   val: pickups.length,  cls: 'text-emerald-400' },
-    { icon: '✅', label: 'Completed',        val: done,            cls: 'text-purple-400' },
-    { icon: '🍽️', label: 'Meals Delivered',  val: totalMeals,      cls: 'text-orange-400' },
-    { icon: '⚡', label: 'Active Now',       val: active.length,   cls: 'text-blue-400' },
-  ]
-
-  const BADGES = [
-    { icon: '🌟', label: 'Hero',     unlocked: done >= 10,  threshold: 10 },
-    { icon: '⚡', label: 'Speedy',   unlocked: done >= 20,  threshold: 20 },
-    { icon: '💯', label: 'Reliable', unlocked: done >= 30,  threshold: 30 },
-    { icon: '🏆', label: 'Legend',   unlocked: done >= 50,  threshold: 50 },
-    { icon: '🔥', label: 'Streak',   unlocked: done >= 5,   threshold: 5  },
-    { icon: '🌱', label: 'Green',    unlocked: done >= 1,   threshold: 1  },
+  const STAT_CARDS = [
+    { icon: 'electric_moped', label: 'Deliveries Done', value: stats.totalDeliveries, color: '#006948', bg: 'rgba(0,105,72,0.08)' },
+    { icon: 'soup_kitchen', label: 'Meals Delivered', value: `${stats.mealsDelivered}+`, color: '#006948', bg: 'rgba(0,105,72,0.08)' },
+    { icon: 'route', label: 'Km Ridden', value: `${stats.kmRidden} km`, color: '#825100', bg: 'rgba(255,221,184,0.4)' },
+    { icon: 'compost', label: 'CO₂ Saved (kg)', value: stats.co2Saved, color: '#006948', bg: 'rgba(108,248,187,0.3)' },
   ]
 
   return (
-    <div className="min-h-screen pt-24 pb-16 px-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="flex min-h-screen" style={{ background: '#faf8ff', fontFamily: "'Inter', sans-serif" }}>
+      <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-        {/* Header */}
-        <div className="mb-8">
-          <span className="text-xs font-outfit font-bold text-emerald-400 tracking-widest uppercase">🚴 Volunteer Portal</span>
-          <h1 className="font-outfit font-black text-3xl md:text-4xl mt-2">
-            Hey, <span className="gradient-text">{user?.firstName} {user?.lastName}! 👋</span>
-          </h1>
-          <p className="text-gray-400 text-sm mt-1">
-            You've completed <strong className="text-emerald-400">{done}</strong> pickup{done !== 1 ? 's' : ''}. Every delivery counts! 💚
-          </p>
+      {/* Ambient glows */}
+      <div className="fixed top-[-10%] left-[20%] w-[500px] h-[500px] rounded-full blur-[120px] pointer-events-none -z-10" style={{ background: 'rgba(78,222,163,0.15)' }} />
+      <div className="fixed bottom-[-10%] right-[5%] w-[600px] h-[600px] rounded-full blur-[140px] pointer-events-none -z-10" style={{ background: 'rgba(133,248,196,0.15)' }} />
+
+      <SideNav user={user} active="dashboard" />
+
+      <main className="flex-1 ml-64 p-8 overflow-x-hidden">
+        {/* Greeting bar */}
+        <div className="flex items-start justify-between mb-8">
+          <div>
+            <p className="text-sm text-[#3d4a42]">Good to see you,</p>
+            <h1 className="text-3xl font-extrabold text-[#131b2e] tracking-tight" style={S}>{user?.firstName} {user?.lastName} 👋</h1>
+            <p className="text-sm text-[#3d4a42] mt-1">You're making a real difference. Here's your volunteer snapshot.</p>
+          </div>
+          <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-bold"
+            style={{ background: 'rgba(108,248,187,0.2)', borderColor: 'rgba(0,108,73,0.2)', color: '#00714d' }}>
+            <span className="w-2 h-2 rounded-full animate-ping" style={{ background: '#006948' }} />
+            Available for pickup
+          </div>
         </div>
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {stats.map(s => (
-            <div key={s.label} className="glass-card rounded-2xl p-5 flex items-center gap-4 hover:-translate-y-1 transition-all">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-white/5 flex-shrink-0">{s.icon}</div>
-              <div>
-                <div className={`font-outfit font-black text-2xl ${s.cls}`}>{s.val}</div>
-                <div className="text-gray-500 text-xs">{s.label}</div>
+        {/* Stat cards */}
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
+          {STAT_CARDS.map((s, i) => (
+            <div key={i} className="rounded-2xl p-5 transition-all hover:-translate-y-0.5"
+              style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 8px 20px -4px rgba(0,105,72,0.05)' }}>
+              <div className="w-11 h-11 rounded-full flex items-center justify-center mb-4" style={{ background: s.bg }}>
+                <span className="material-symbols-outlined text-2xl" style={{ color: s.color }}>{s.icon}</span>
               </div>
+              <div className="text-3xl font-extrabold text-[#131b2e] tracking-tight" style={S}>{s.value}</div>
+              <div className="text-sm text-[#3d4a42] font-semibold mt-1">{s.label}</div>
             </div>
           ))}
         </div>
 
-        {loading ? (
-          <div className="text-center py-20 text-emerald-400 animate-pulse font-outfit text-lg">Loading your pickups…</div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-            {/* Active + Available Pickups */}
-            <div className="lg:col-span-2 space-y-6">
-
-              {/* Active Assignments */}
-              {active.length > 0 && (
-                <div>
-                  <h2 className="font-outfit font-bold text-lg text-white mb-4">🔔 Active Assignments</h2>
-                  <div className="space-y-4">
-                    {active.map(d => (
-                      <div key={d._id}
-                        className="bg-emerald-950/30 border border-emerald-700/50 rounded-2xl p-6 glow-emerald">
-                        <div className="flex justify-between items-start flex-wrap gap-3 mb-4">
-                          <div>
-                            <div className="font-outfit font-black text-lg text-white">{d.foodName} × {d.quantity}</div>
-                            <div className="text-gray-400 text-sm mt-1">From: <strong className="text-emerald-300">{d.donor?.orgName || d.donorName}</strong></div>
-                          </div>
-                          <span className="text-xs font-outfit font-bold px-3 py-1 rounded-full bg-orange-950/40 border border-orange-900/40 text-orange-400">🚴 In Transit</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
-                          <div className="bg-white/5 rounded-xl p-3">
-                            <div className="text-gray-500 text-xs mb-1">📍 Pickup From</div>
-                            <div className="font-semibold text-white text-xs">{d.address || d.city}</div>
-                          </div>
-                          <div className="bg-white/5 rounded-xl p-3">
-                            <div className="text-gray-500 text-xs mb-1">🏥 Deliver To</div>
-                            <div className="font-semibold text-emerald-300 text-xs">{d.claimedBy?.orgName || 'NGO Partner'}</div>
-                          </div>
-                        </div>
-                        <div className="flex gap-3 flex-wrap">
-                          <button onClick={() => handleDeliver(d._id)}
-                            className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-outfit font-bold text-sm rounded-xl transition-all">
-                            ✅ Mark as Delivered
-                          </button>
-                          <button className="px-4 py-2.5 bg-white/5 border border-white/10 text-gray-300 hover:text-white font-outfit font-semibold text-sm rounded-xl transition-all">
-                            📞 Call Donor
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Available Pickups */}
-              <div>
-                <h2 className="font-outfit font-bold text-lg text-white mb-4">📋 Available Pickups Near You</h2>
-                {available.length === 0 ? (
-                  <div className="glass-card rounded-2xl p-8 text-center text-gray-500">
-                    <div className="text-4xl mb-3">🎉</div>
-                    <p>No pending pickups right now. Check back soon!</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {available.map(d => {
-                      const hrs = Math.max(0, (new Date(d.expiryTime) - new Date()) / 3_600_000)
-                      const h = Math.floor(hrs), m = Math.round((hrs % 1) * 60)
-                      const timerCls = hrs < 2 ? 'text-red-400' : hrs < 4 ? 'text-orange-400' : 'text-emerald-400'
-                      return (
-                        <div key={d._id} className="glass-card rounded-xl p-5 flex items-start gap-4 hover:border-emerald-700/40 transition-all">
-                          <div className="flex-1 min-w-0">
-                            <div className="font-outfit font-bold text-sm text-white mb-1">{d.foodName} × {d.quantity}</div>
-                            <div className="text-gray-500 text-xs">📍 {d.city} • {d.donorType}</div>
-                            <div className="flex gap-3 mt-2 text-xs">
-                              <span className={`font-outfit font-bold ${timerCls}`}>⏱ {h}h {m}m left</span>
-                              <span className="text-blue-400">🏥 {d.claimedBy?.orgName || 'NGO'}</span>
-                              <span className="text-gray-500">📞 {d.phone}</span>
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => toast.success('Pickup accepted! Please contact the donor. 🚴')}
-                            className="flex-shrink-0 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-outfit font-bold rounded-xl transition-all">
-                            Accept
-                          </button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Completed History */}
-              {done > 0 && (
-                <div>
-                  <h2 className="font-outfit font-bold text-lg text-white mb-4">✅ Completed Pickups</h2>
-                  <div className="space-y-2">
-                    {pickups.filter(d => d.status === 'delivered').slice(0, 5).map(d => (
-                      <div key={d._id} className="glass-card rounded-xl p-4 flex items-center justify-between">
-                        <div>
-                          <div className="font-outfit font-semibold text-sm text-white">{d.foodName} × {d.quantity}</div>
-                          <div className="text-gray-500 text-xs mt-0.5">Delivered to {d.claimedBy?.orgName || 'NGO'}</div>
-                        </div>
-                        <span className="text-xs font-outfit font-bold text-purple-400 bg-purple-950/40 px-2.5 py-1 rounded-full">📦 Done</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* Active deliveries */}
+          <div className="xl:col-span-2 rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 8px 32px -4px rgba(0,105,72,0.06)' }}>
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-xl font-bold text-[#131b2e]" style={S}>🚴 Active Deliveries</h2>
+              <span className="px-3 py-1 rounded-full text-xs font-bold" style={{ background: 'rgba(108,248,187,0.3)', color: '#00714d' }}>
+                {myDeliveries.length} active
+              </span>
             </div>
 
-            {/* Sidebar: Badges + Leaderboard */}
-            <div className="space-y-5">
-              {/* Badges */}
-              <div className="glass-card rounded-2xl p-6">
-                <h3 className="font-outfit font-bold text-sm text-white mb-4">🏅 Your Badges</h3>
-                <div className="grid grid-cols-3 gap-3">
-                  {BADGES.map(b => (
-                    <div key={b.label}
-                      className={`flex flex-col items-center py-3 px-2 rounded-xl border text-center transition-all ${
-                        b.unlocked
-                          ? 'border-emerald-700/50 bg-emerald-950/30'
-                          : 'border-gray-800/50 bg-white/3 opacity-40 grayscale'
-                      }`}>
-                      <div className="text-2xl mb-1">{b.icon}</div>
-                      <div className={`font-outfit font-bold text-[10px] ${b.unlocked ? 'text-emerald-400' : 'text-gray-600'}`}>{b.label}</div>
-                      {!b.unlocked && <div className="text-[9px] text-gray-600">{b.threshold} pickups</div>}
+            {myDeliveries.length === 0 ? (
+              <div className="text-center py-12">
+                <span className="material-symbols-outlined text-5xl text-[#bccac0]">electric_moped</span>
+                <p className="text-sm text-[#3d4a42] mt-3">No active deliveries right now.</p>
+                <Link to="/donations" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold hover:underline" style={{ color: '#006948' }}>
+                  Browse the food board →
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {myDeliveries.map(d => {
+                  const hrs = (new Date(d.expiryTime) - new Date()) / 3_600_000
+                  const isTransit = d.status === 'in_transit'
+                  return (
+                    <div key={d._id} className="rounded-2xl p-5 border transition-all hover:-translate-y-0.5"
+                      style={{ background: isTransit ? 'rgba(255,221,184,0.2)' : 'rgba(108,248,187,0.1)', borderColor: isTransit ? 'rgba(130,81,0,0.2)' : 'rgba(0,108,73,0.2)', boxShadow: '0 4px 16px -4px rgba(0,105,72,0.08)' }}>
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h3 className="text-base font-bold text-[#131b2e]" style={S}>{d.foodName}</h3>
+                          <p className="text-sm text-[#3d4a42]">{d.quantity} servings • {d.donorName}</p>
+                        </div>
+                        <span className="text-xs font-bold px-3 py-1 rounded-full"
+                          style={isTransit
+                            ? { background: 'rgba(255,221,184,0.5)', color: '#825100' }
+                            : { background: 'rgba(108,248,187,0.4)', color: '#00714d' }}>
+                          {isTransit ? '🚴 In Transit' : '✅ Claimed'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4 text-xs text-[#3d4a42] mb-4">
+                        <div className="flex items-center gap-1"><span className="material-symbols-outlined text-sm text-[#6d7a72]">pin_drop</span>{d.city}</div>
+                        <div className="flex items-center gap-1"><span className="material-symbols-outlined text-sm text-[#6d7a72]">timer</span>
+                          {hrs > 0 ? `${Math.floor(hrs)}h ${Math.round((hrs % 1) * 60)}m left` : 'Urgent!'}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        {!isTransit && (
+                          <button onClick={() => handlePickup(d._id)}
+                            className="flex-1 py-2.5 rounded-full text-xs font-bold text-white transition-all hover:scale-[1.02]"
+                            style={{ background: 'linear-gradient(135deg, #006948, #00855d)' }}>
+                            📍 Confirm Pickup
+                          </button>
+                        )}
+                        {isTransit && (
+                          <button onClick={() => handleDeliver(d._id)}
+                            className="flex-1 py-2.5 rounded-full text-xs font-bold text-white transition-all hover:scale-[1.02]"
+                            style={{ background: 'linear-gradient(135deg, #006948, #00855d)' }}>
+                            ✅ Mark as Delivered
+                          </button>
+                        )}
+                        {d.phone && (
+                          <a href={`tel:${d.phone}`} className="px-4 py-2.5 rounded-full text-xs font-bold border transition-all hover:bg-gray-50"
+                            style={{ borderColor: 'rgba(188,202,192,0.5)', color: '#3d4a42' }}>
+                            <span className="material-symbols-outlined text-sm">call</span>
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Available to pick up */}
+            {available.length > 0 && (
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-base font-bold text-[#131b2e]" style={S}>📦 Available Nearby</h3>
+                  <Link to="/donations" className="text-xs font-semibold hover:underline" style={{ color: '#006948' }}>View all →</Link>
+                </div>
+                <div className="space-y-3">
+                  {available.map(d => (
+                    <div key={d._id} className="flex items-center justify-between p-3 rounded-xl border"
+                      style={{ background: 'rgba(242,243,255,0.6)', borderColor: 'rgba(188,202,192,0.3)' }}>
+                      <div>
+                        <div className="text-sm font-bold text-[#131b2e]">{d.foodName}</div>
+                        <div className="text-xs text-[#3d4a42]">{d.quantity} servings • {d.city}</div>
+                      </div>
+                      <Link to="/donations" className="text-xs font-bold px-4 py-1.5 rounded-full text-white"
+                        style={{ background: '#006948' }}>
+                        Pickup
+                      </Link>
                     </div>
                   ))}
                 </div>
               </div>
+            )}
+          </div>
 
-              {/* Progress to next badge */}
-              <div className="glass-card rounded-2xl p-6">
-                <h3 className="font-outfit font-bold text-sm text-white mb-4">📈 Progress</h3>
-                {BADGES.filter(b => !b.unlocked).slice(0, 1).map(b => (
-                  <div key={b.label}>
-                    <div className="flex justify-between text-xs mb-2">
-                      <span className="text-gray-400">Next: {b.icon} {b.label}</span>
-                      <span className="text-emerald-400 font-outfit font-bold">{done}/{b.threshold}</span>
-                    </div>
-                    <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-emerald-700 to-emerald-400 rounded-full transition-all duration-1000"
-                        style={{ width: `${Math.min(100, (done / b.threshold) * 100)}%` }}
-                      />
-                    </div>
-                    <p className="text-[10px] text-gray-600 mt-2">{b.threshold - done} more pickups to unlock</p>
+          {/* Right column — badges + leaderboard */}
+          <div className="space-y-5">
+            {/* Eco Badges */}
+            <div className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.9)' }}>
+              <h3 className="text-base font-bold text-[#131b2e] mb-4" style={S}>🏅 Eco Badges</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {BADGES.map((b, i) => (
+                  <div key={i} className={`rounded-xl p-3 text-center transition-all ${b.earned ? '' : 'opacity-40 grayscale'}`}
+                    style={{ background: b.earned ? b.bg : 'rgba(234,237,255,0.4)', border: `1px solid ${b.earned ? 'rgba(188,202,192,0.4)' : 'rgba(188,202,192,0.2)'}` }}>
+                    <span className="material-symbols-outlined text-2xl mb-1" style={{ color: b.color, fontVariationSettings: b.earned ? "'FILL' 1" : "'FILL' 0" }}>{b.icon}</span>
+                    <div className="text-[11px] font-bold text-[#131b2e]">{b.label}</div>
+                    <div className="text-[10px] text-[#6d7a72] mt-0.5">{b.desc}</div>
                   </div>
                 ))}
-                {BADGES.every(b => b.unlocked) && (
-                  <p className="text-emerald-400 font-outfit font-bold text-sm">🎉 All badges unlocked! You're a Legend!</p>
-                )}
               </div>
+            </div>
 
-              {/* Quick Stats */}
-              <div className="glass-card rounded-2xl p-6">
-                <h3 className="font-outfit font-bold text-sm text-white mb-4">🌱 Your Impact</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-400 text-sm">Meals Delivered</span>
-                    <span className="font-outfit font-black text-emerald-400">{totalMeals}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-400 text-sm">CO₂ Saved</span>
-                    <span className="font-outfit font-black text-orange-400">~{(totalMeals * 0.5).toFixed(0)} kg</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-400 text-sm">Pickups Done</span>
-                    <span className="font-outfit font-black text-purple-400">{done}</span>
-                  </div>
-                </div>
+            {/* Motivational card */}
+            <div className="rounded-2xl p-5 text-white" style={{ background: 'linear-gradient(135deg, #006948, #00855d)', boxShadow: '0 8px 24px -4px rgba(0,105,72,0.3)' }}>
+              <span className="material-symbols-outlined text-3xl mb-2 block" style={{ color: '#85f8c4', fontVariationSettings: "'FILL' 1" }}>volunteer_activism</span>
+              <div className="text-2xl font-extrabold" style={S}>{stats.mealsDelivered || 0}</div>
+              <div className="text-sm text-white/80 mt-0.5">Meals Delivered Total</div>
+              <div className="mt-3 pt-3 border-t border-white/20 text-xs text-white/75">
+                🌍 {stats.co2Saved || 0} kg CO₂ saved by your rides
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      </main>
     </div>
   )
 }

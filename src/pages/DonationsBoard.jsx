@@ -1,35 +1,128 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 
-const STATUS_COLOR = {
-  urgent:    'text-red-400 bg-red-950/40 border-red-900/40',
-  available: 'text-emerald-400 bg-emerald-950/40 border-emerald-900/40',
-  claimed:   'text-blue-400 bg-blue-950/40 border-blue-900/40',
-  in_transit:'text-orange-400 bg-orange-950/40 border-orange-900/40',
-  delivered: 'text-purple-400 bg-purple-950/40 border-purple-900/40',
+const S = { fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }
+
+const URGENCY = {
+  urgent: { label: 'URGENT', timerCls: 'text-red-600', badgeCls: 'bg-red-100 text-red-700', border: 'border-red-300/50' },
+  moderate: { label: 'MODERATE', timerCls: 'text-amber-600', badgeCls: 'bg-amber-100 text-amber-700', border: 'border-amber-300/50' },
+  safe: { label: 'SAFE', timerCls: 'text-emerald-600', badgeCls: 'bg-emerald-100 text-emerald-700', border: 'border-emerald-300/50' },
+  available: { label: 'AVAILABLE', timerCls: 'text-emerald-600', badgeCls: 'bg-emerald-100 text-emerald-700', border: 'border-emerald-300/50' },
 }
-const STATUS_LABEL = { urgent: '🔴 URGENT', available: '🟢 Available', claimed: '✅ Claimed', in_transit: '🚚 In Transit', delivered: '📦 Delivered' }
 
 function Countdown({ expiryTime }) {
   const [text, setText] = useState('')
+  const [level, setLevel] = useState('safe')
   useEffect(() => {
     const update = () => {
       const diff = new Date(expiryTime) - new Date()
-      if (diff <= 0) { setText('Expired'); return }
+      if (diff <= 0) { setText('Expired'); setLevel('urgent'); return }
       const h = Math.floor(diff / 3_600_000)
       const m = Math.floor((diff % 3_600_000) / 60_000)
-      setText(`${h}h ${m}m`)
+      setText(`${h}h ${m}m left`)
+      setLevel(diff < 4 * 3_600_000 ? (diff < 2 * 3_600_000 ? 'urgent' : 'moderate') : 'safe')
     }
     update()
     const t = setInterval(update, 60_000)
     return () => clearInterval(t)
   }, [expiryTime])
-  const hrs = (new Date(expiryTime) - new Date()) / 3_600_000
-  const cls = hrs < 2 ? 'text-red-400' : hrs < 4 ? 'text-orange-400' : 'text-emerald-400'
-  return <span className={`font-outfit font-bold text-xs ${cls}`}>⏱ {text}</span>
+  const u = URGENCY[level]
+  return (
+    <div className="flex items-center gap-1">
+      <span className="material-symbols-outlined text-sm" style={{ color: level === 'urgent' ? '#dc2626' : level === 'moderate' ? '#d97706' : '#059669' }}>timer</span>
+      <span className={`text-xs font-bold ${u.timerCls}`}>⏱ {text}</span>
+    </div>
+  )
+}
+
+function SideNav({ active, user }) {
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+  const navLinks = [
+    { id: 'home', icon: 'home', label: 'Home Page', to: '/' },
+    { id: 'board', icon: 'lunch_dining', label: 'Food Board', to: '/donations' },
+    { id: 'donate', icon: 'volunteer_activism', label: 'Donate Food', to: '/donate' },
+  ]
+  if (user?.role === 'ngo') {
+    navLinks.push({ id: 'ngo', icon: 'apartment', label: 'NGO Portal', to: '/ngo' })
+  }
+  if (user?.role === 'volunteer') {
+    navLinks.push({ id: 'volunteer', icon: 'directions_bike', label: 'Volunteer Hub', to: '/volunteer' })
+  }
+  if (user?.role === 'admin') {
+    navLinks.push({ id: 'admin', icon: 'admin_panel_settings', label: 'Admin Console', to: '/admin' })
+  }
+
+  return (
+    <aside className="fixed left-0 top-0 h-full w-64 flex flex-col justify-between py-6 px-4 z-40"
+      style={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(20px)', borderRight: '1px solid rgba(188,202,192,0.3)', boxShadow: '1px 0 8px rgba(0,105,72,0.04)' }}>
+      <div>
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-3 px-3 mb-6">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-md"
+            style={{ background: 'linear-gradient(135deg, #006948, #00855d)' }}>
+            <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>eco</span>
+          </div>
+          <div>
+            <span className="block font-bold text-base tracking-tight" style={{ ...S, color: '#006948' }}>SharePlate</span>
+            <span className="block text-xs text-[#6d7a72]">Food Rescue OS • Live Radar</span>
+          </div>
+        </Link>
+
+        {/* User card */}
+        {user && (
+          <div className="p-3 rounded-xl border flex items-center gap-3 mb-5"
+            style={{ background: 'rgba(242,243,255,0.8)', borderColor: 'rgba(188,202,192,0.4)' }}>
+            <div className="relative w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+              style={{ background: '#eaedff', border: '1px solid rgba(188,202,192,0.5)' }}>
+              <span className="material-symbols-outlined text-2xl" style={{ color: '#006948' }}>
+                {user.role === 'donor' ? 'restaurant' : user.role === 'ngo' ? 'apartment' : user.role === 'volunteer' ? 'directions_bike' : 'admin_panel_settings'}
+              </span>
+              <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center"
+                style={{ background: '#006948' }}>
+                <span className="material-symbols-outlined text-white" style={{ fontSize: '10px' }}>verified</span>
+              </span>
+            </div>
+            <div className="overflow-hidden">
+              <div className="text-sm font-bold text-[#131b2e] truncate">{user?.orgName || `${user?.firstName} ${user?.lastName}`}</div>
+              <span className="text-xs text-[#3d4a42] capitalize">{user?.role}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Nav links */}
+        <nav className="space-y-1">
+          {navLinks.map(l => (
+            <Link key={l.id} to={l.to}
+              className="flex items-center gap-3 px-4 py-3 rounded-full text-sm font-semibold transition-all"
+              style={active === l.id
+                ? { background: 'rgba(108,248,187,0.4)', color: '#00714d' }
+                : { color: '#3d4a42' }}>
+              <span className="material-symbols-outlined text-xl">{l.icon}</span>
+              <span>{l.label}</span>
+              {l.id === 'board' && <span className="ml-auto px-2 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: '#006948' }}>Live</span>}
+            </Link>
+          ))}
+        </nav>
+      </div>
+
+      {/* Bottom */}
+      {user ? (
+        <button onClick={() => { logout(); navigate('/') }} className="w-full flex items-center gap-3 px-4 py-3 rounded-full text-sm font-semibold text-[#3d4a42] transition-all hover:bg-red-50 hover:text-red-600 text-left">
+          <span className="material-symbols-outlined text-xl">logout</span>
+          Sign Out
+        </button>
+      ) : (
+        <Link to="/login" className="flex items-center gap-3 px-4 py-3 rounded-full text-sm font-semibold text-[#006948] transition-all hover:bg-emerald-50">
+          <span className="material-symbols-outlined text-xl">login</span>
+          Sign In
+        </Link>
+      )}
+    </aside>
+  )
 }
 
 export default function DonationsBoard() {
@@ -41,9 +134,8 @@ export default function DonationsBoard() {
 
   const fetchDonations = () => {
     setLoading(true)
-    api.get('/donations').then(({ data }) => setDonations(data)).catch(() => toast.error('Failed to load donations')).finally(() => setLoading(false))
+    api.get('/donations').then(({ data }) => setDonations(data)).catch(() => toast.error('Failed to load')).finally(() => setLoading(false))
   }
-
   useEffect(() => { fetchDonations() }, [])
 
   const handleClaim = async (id) => {
@@ -51,118 +143,185 @@ export default function DonationsBoard() {
       await api.patch(`/donations/${id}/claim`)
       toast.success('Food claimed! Volunteer assignment in progress. 🤝')
       fetchDonations()
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Could not claim donation.')
-    }
+    } catch (err) { toast.error(err.response?.data?.error || 'Claim failed') }
+  }
+
+  const getLevel = (d) => {
+    const hrs = (new Date(d.expiryTime) - new Date()) / 3_600_000
+    if (hrs < 0) return 'urgent'
+    if (d.priority === 'urgent' || hrs < 4) return 'urgent'
+    if (hrs < 8) return 'moderate'
+    return 'safe'
   }
 
   const filtered = donations.filter(d => {
-    const matchStatus = filter === 'all' || d.status === filter || d.priority === filter
+    const level = getLevel(d)
+    const matchFilter = filter === 'all' || (filter === 'urgent' && level === 'urgent') || (filter === 'moderate' && level === 'moderate') || (filter === 'safe' && level === 'safe') || d.status === filter
     const matchSearch = !search || d.foodName?.toLowerCase().includes(search.toLowerCase()) || d.donorName?.toLowerCase().includes(search.toLowerCase()) || d.city?.toLowerCase().includes(search.toLowerCase())
-    return matchStatus && matchSearch
+    return matchFilter && matchSearch
   })
 
   const counts = {
     all: donations.length,
-    urgent: donations.filter(d => d.priority === 'urgent' && d.status === 'available').length,
-    available: donations.filter(d => d.status === 'available').length,
-    claimed: donations.filter(d => d.status === 'claimed').length,
+    urgent: donations.filter(d => getLevel(d) === 'urgent').length,
+    moderate: donations.filter(d => getLevel(d) === 'moderate').length,
+    safe: donations.filter(d => getLevel(d) === 'safe').length,
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16 px-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="flex min-h-screen" style={{ background: 'linear-gradient(135deg, #faf8ff, #f5fbf7, rgba(234,237,255,0.4))', fontFamily: "'Inter', sans-serif" }}>
+      <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+      <SideNav active="board" user={user} />
+
+      <main className="flex-1 ml-64 p-8 overflow-x-hidden">
         {/* Header */}
-        <div className="text-center mb-10">
-          <span className="inline-block px-4 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-800/40 text-emerald-400 text-sm font-outfit font-semibold mb-4">🍱 Rescue Board</span>
-          <h1 className="font-outfit font-black text-4xl md:text-5xl mb-3">Food <span className="gradient-text">Rescue Board</span></h1>
-          <p className="text-gray-400">Browse all active food donations. NGOs can claim and arrange pickup.</p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border mb-2"
+              style={{ background: 'rgba(255,218,214,0.6)', borderColor: 'rgba(186,26,26,0.2)' }}>
+              <span className="w-2 h-2 rounded-full animate-ping" style={{ background: '#ba1a1a' }} />
+              <span className="text-xs font-bold" style={{ color: '#ba1a1a' }}>🔴 LIVE RESCUE RADAR</span>
+            </div>
+            <h1 className="text-3xl font-extrabold text-[#131b2e] tracking-tight" style={S}>
+              Surplus Food Ready for Pickup
+            </h1>
+            <p className="text-[#3d4a42] mt-1 text-sm">Real-time surplus batches posted by certified commercial kitchens.</p>
+          </div>
+
+          {/* Search */}
+          <div className="flex gap-3">
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#6d7a72] text-lg">search</span>
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search food, donor, city…"
+                className="pl-10 pr-4 py-2.5 rounded-full text-sm text-[#131b2e] outline-none w-60"
+                style={{ background: 'rgba(255,255,255,0.8)', border: '1px solid rgba(188,202,192,0.5)' }}
+                onFocus={e => { e.target.style.borderColor = '#006948'; e.target.style.boxShadow = '0 0 0 3px rgba(0,105,72,0.1)' }}
+                onBlur={e => { e.target.style.borderColor = 'rgba(188,202,192,0.5)'; e.target.style.boxShadow = 'none' }} />
+            </div>
+            {user?.role === 'donor' && (
+              <Link to="/donate" className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold text-white"
+                style={{ background: 'linear-gradient(135deg, #006948, #00855d)' }}>
+                <span className="material-symbols-outlined text-base">add_circle</span>
+                Donate Food
+              </Link>
+            )}
+          </div>
         </div>
 
-        {/* Filters + Search */}
-        <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center mb-6">
-          <div className="flex flex-wrap gap-2">
-            {['all','urgent','available','claimed'].map(f => (
-              <button key={f} onClick={() => setFilter(f)}
-                className={`px-4 py-2 rounded-full text-sm font-outfit font-semibold transition-all border ${
-                  filter === f ? 'bg-emerald-600 text-white border-emerald-600' : 'text-gray-400 border-emerald-900/30 hover:text-emerald-400 hover:border-emerald-800/50'
-                }`}>
-                {f === 'urgent' ? '🔴' : f === 'available' ? '🟢' : f === 'claimed' ? '✅' : '📋'} {f.charAt(0).toUpperCase() + f.slice(1)}
-                <span className="ml-1.5 text-xs opacity-70">({counts[f] || 0})</span>
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-3">
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Search donations…"
-              className="bg-white/5 border border-emerald-900/30 rounded-xl px-4 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500 transition-all w-60" />
-            {user?.role === 'donor' && <Link to="/donate" className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-outfit font-bold rounded-xl transition-all whitespace-nowrap">+ New Donation</Link>}
-          </div>
+        {/* Filter pills */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          {[
+            { key: 'all', label: 'All Dispatches', count: counts.all },
+            { key: 'urgent', label: '🔴 Urgent', count: counts.urgent },
+            { key: 'moderate', label: '🟡 Moderate', count: counts.moderate },
+            { key: 'safe', label: '🟢 Safe', count: counts.safe },
+          ].map(f => (
+            <button key={f.key} onClick={() => setFilter(f.key)}
+              className="px-4 py-1.5 rounded-full text-xs font-semibold transition-all"
+              style={filter === f.key
+                ? { background: '#006948', color: '#fff' }
+                : { background: 'rgba(255,255,255,0.8)', border: '1px solid rgba(188,202,192,0.4)', color: '#3d4a42' }}>
+              {f.label} {f.count > 0 && <span className="ml-1 opacity-70">({f.count})</span>}
+            </button>
+          ))}
         </div>
 
         {/* Grid */}
         {loading ? (
-          <div className="text-center py-20 text-emerald-400 animate-pulse font-outfit">Loading donations…</div>
+          <div className="flex items-center justify-center py-24">
+            <div className="text-center">
+              <span className="material-symbols-outlined text-5xl animate-spin" style={{ color: '#006948' }}>refresh</span>
+              <p className="text-sm text-[#3d4a42] mt-3">Loading live rescues…</p>
+            </div>
+          </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="text-5xl mb-4">🍽️</div>
-            <p className="text-gray-400">No donations found. {user?.role === 'donor' && <Link to="/donate" className="text-emerald-400 hover:underline">Be the first to donate!</Link>}</p>
+          <div className="text-center py-24">
+            <span className="material-symbols-outlined text-5xl text-[#bccac0]">lunch_dining</span>
+            <p className="text-[#3d4a42] mt-3">No donations found. {user?.role === 'donor' && <Link to="/donate" className="font-semibold hover:underline" style={{ color: '#006948' }}>Be the first to donate!</Link>}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filtered.map(d => (
-              <div key={d._id} className={`glass-card rounded-2xl p-5 hover:border-emerald-700/50 transition-all hover:-translate-y-1 ${d.priority === 'urgent' && d.status === 'available' ? 'urgent-row' : ''}`}>
-                <div className="flex justify-between items-start mb-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
+            {filtered.map(d => {
+              const level = getLevel(d)
+              const u = URGENCY[level] || URGENCY.safe
+              const hrs = (new Date(d.expiryTime) - new Date()) / 3_600_000
+              return (
+                <div key={d._id}
+                  className={`rounded-2xl p-5 flex flex-col justify-between border relative overflow-hidden transition-all duration-300 hover:-translate-y-1 ${u.border}`}
+                  style={{ background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(16px)', boxShadow: level === 'urgent' ? '0 10px 30px -6px rgba(239,68,68,0.12)' : '0 12px 30px -6px rgba(0,105,72,0.06)' }}>
+                  {level === 'urgent' && <div className="absolute -right-12 -top-12 w-28 h-28 rounded-full blur-xl pointer-events-none" style={{ background: 'rgba(255,218,214,0.4)' }} />}
+
                   <div>
-                    <div className="font-outfit font-bold text-white text-sm">{d.donorName}</div>
-                    <div className="text-gray-500 text-xs mt-0.5">🏪 {d.donorType} • {d.city}</div>
-                  </div>
-                  <span className={`text-[10px] font-outfit font-bold px-2.5 py-1 rounded-full border ${STATUS_COLOR[d.status]}`}>
-                    {STATUS_LABEL[d.status]}
-                  </span>
-                </div>
+                    {/* Urgency badge + timer */}
+                    <div className="flex items-center justify-between mb-4">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${u.badgeCls}`}>
+                        {level === 'urgent' && <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-red-600" />}
+                        {u.label}
+                      </span>
+                      {d.expiryTime && <Countdown expiryTime={d.expiryTime} />}
+                    </div>
 
-                <div className="bg-emerald-950/30 rounded-xl p-3 mb-4">
-                  <div className="font-semibold text-white text-sm mb-1">{d.foodName}</div>
-                  <div className="text-gray-500 text-xs">{d.quantity} servings • {d.foodType}</div>
-                </div>
+                    <h3 className="text-lg font-bold text-[#131b2e] mb-1" style={S}>{d.foodName}</h3>
+                    <p className="text-sm font-semibold mb-4" style={{ color: '#006948' }}>{d.quantity} servings ready</p>
 
-                <div className="grid grid-cols-2 gap-2 mb-4 text-xs">
-                  <div className="bg-white/5 rounded-lg p-2.5">
-                    <div className="text-gray-500 mb-1">Expires</div>
-                    <Countdown expiryTime={d.expiryTime} />
+                    {/* Meta */}
+                    <div className="space-y-2 py-3 border-y text-sm text-[#3d4a42]" style={{ borderColor: 'rgba(188,202,192,0.3)' }}>
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-base text-[#6d7a72]">storefront</span>
+                        <span className="truncate font-medium text-[#131b2e]">{d.donorName}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-base text-[#6d7a72]">pin_drop</span>
+                        <span>{d.city} {d.foodType && `• ${d.foodType}`}</span>
+                      </div>
+                      {d.phone && (
+                        <div className="flex items-center gap-2 text-xs font-semibold" style={{ color: '#006948' }}>
+                          <span className="material-symbols-outlined text-base">call</span>
+                          <span>{d.phone}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="bg-white/5 rounded-lg p-2.5">
-                    <div className="text-gray-500 mb-1">Contact</div>
-                    <span className="text-emerald-400 font-bold text-xs">📞 {d.phone}</span>
+
+                  {/* CTA */}
+                  <div className="mt-5">
+                    {d.status === 'available' && user?.role === 'ngo' ? (
+                      <button onClick={() => handleClaim(d._id)}
+                        className="w-full py-3 px-4 rounded-full text-sm font-bold text-white flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        style={level === 'urgent'
+                          ? { background: '#dc2626' }
+                          : { background: 'linear-gradient(135deg, #006948, #00855d)' }}>
+                        Claim Donation
+                        <span className="material-symbols-outlined text-base">volunteer_activism</span>
+                      </button>
+                    ) : d.status === 'claimed' ? (
+                      <div className="w-full py-2.5 px-4 rounded-full text-xs font-semibold text-center" style={{ background: 'rgba(108,248,187,0.2)', border: '1px solid rgba(0,113,77,0.2)', color: '#00714d' }}>
+                        ✅ Claimed — Volunteer en route
+                      </div>
+                    ) : d.status === 'in_transit' ? (
+                      <div className="w-full py-2.5 px-4 rounded-full text-xs font-semibold text-center" style={{ background: 'rgba(255,221,184,0.3)', border: '1px solid rgba(130,81,0,0.2)', color: '#825100' }}>
+                        🚴 Volunteer delivering
+                      </div>
+                    ) : d.status === 'delivered' ? (
+                      <div className="w-full py-2.5 px-4 rounded-full text-xs font-semibold text-center" style={{ background: 'rgba(234,237,255,0.6)', border: '1px solid rgba(188,202,192,0.4)', color: '#3d4a42' }}>
+                        📦 Delivered successfully
+                      </div>
+                    ) : (
+                      <Link to="/login"
+                        className="block w-full py-3 px-4 rounded-full text-sm font-bold text-center transition-all hover:scale-[1.02]"
+                        style={{ background: 'linear-gradient(135deg, #006948, #00855d)', color: '#fff' }}>
+                        Login as NGO to Claim →
+                      </Link>
+                    )}
                   </div>
                 </div>
-
-                {d.status === 'available' && user?.role === 'ngo' && (
-                  <button onClick={() => handleClaim(d._id)}
-                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-outfit font-bold text-sm rounded-xl transition-all">
-                    🤝 Claim This Donation
-                  </button>
-                )}
-                {d.status === 'claimed' && (
-                  <div className="text-xs text-blue-400 bg-blue-950/30 border border-blue-900/30 rounded-lg p-2.5 text-center">
-                    ✅ Claimed by {d.claimedBy?.orgName || d.claimedBy?.firstName || 'NGO'}
-                  </div>
-                )}
-                {d.status === 'in_transit' && (
-                  <div className="text-xs text-orange-400 bg-orange-950/30 border border-orange-900/30 rounded-lg p-2.5 text-center">
-                    🚴 Volunteer en route — {d.volunteer?.firstName || 'Assigned'}
-                  </div>
-                )}
-                {d.status === 'available' && (!user || user?.role !== 'ngo') && (
-                  <Link to="/register" className="block w-full py-2.5 text-center text-emerald-400 border border-emerald-900/40 font-outfit font-bold text-sm rounded-xl hover:bg-emerald-950/30 transition-all">
-                    Login as NGO to Claim →
-                  </Link>
-                )}
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
-      </div>
+      </main>
     </div>
   )
 }
