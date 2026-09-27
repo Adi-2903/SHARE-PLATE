@@ -99,12 +99,16 @@ export default function NGODashboard() {
     setLoading(true)
     api.get('/donations').then(({ data }) => {
       setDonations(data)
-      const claimed = data.filter(d => d.status !== 'available')
+      // Stats: count only donations claimed BY this NGO
+      const myClaims = data.filter(d => {
+        const claimedId = d.claimedBy?._id || d.claimedBy
+        return claimedId && String(claimedId) === String(user?._id)
+      })
       setStats({
-        totalClaimed: claimed.length,
-        mealsServed: claimed.reduce((a, d) => a + (Number(d.quantity) || 0), 0),
-        urgentRescued: claimed.filter(d => d.priority === 'urgent').length,
-        co2Saved: Math.floor(claimed.reduce((a, d) => a + (Number(d.quantity) || 0), 0) * 0.5),
+        totalClaimed: myClaims.length,
+        mealsServed: myClaims.reduce((a, d) => a + (Number(d.quantity) || 0), 0),
+        urgentRescued: myClaims.filter(d => d.priority === 'urgent').length,
+        co2Saved: Math.floor(myClaims.reduce((a, d) => a + (Number(d.quantity) || 0), 0) * 0.5),
       })
     }).catch(() => {}).finally(() => setLoading(false))
   }
@@ -120,7 +124,11 @@ export default function NGODashboard() {
   }
 
   const available = donations.filter(d => d.status === 'available')
-  const claimed = donations.filter(d => d.status !== 'available' && d.status !== 'expired')
+  // "My Claims" = donations this NGO specifically claimed
+  const claimed = donations.filter(d => {
+    const claimedId = d.claimedBy?._id || d.claimedBy
+    return claimedId && String(claimedId) === String(user?._id)
+  })
 
   const STAT_CARDS = [
     { icon: 'fact_check', label: 'Total Claimed', value: stats.totalClaimed, color: '#006948', bg: 'rgba(0,105,72,0.08)' },

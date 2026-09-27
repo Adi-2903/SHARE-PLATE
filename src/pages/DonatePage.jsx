@@ -1,4 +1,11 @@
 import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import api from '../api/axios'
+import { useAuth } from '../context/AuthContext'
+import toast from 'react-hot-toast'
+
+const S = { fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }
+
 function SideNav({ user }) {
   const { logout } = useAuth()
   const navigate = useNavigate()
@@ -124,7 +131,7 @@ export default function DonatePage() {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [history, setHistory] = useState([])
-  const [form, setForm] = useState({ foodName: '', quantity: '', foodType: 'vegetarian', expiryTime: '', address: '', city: '', phone: '', notes: '' })
+  const [form, setForm] = useState({ foodName: '', quantity: '', foodType: 'Vegetarian', expiryTime: '', address: '', city: '', phone: '', notes: '' })
 
   useEffect(() => {
     api.get('/donations/my').then(({ data }) => setHistory(data)).catch(() => {})
@@ -141,7 +148,7 @@ export default function DonatePage() {
       const { data } = await api.get('/donations/my')
       setHistory(data)
       setStep(1)
-      setForm({ foodName: '', quantity: '', foodType: 'vegetarian', expiryTime: '', address: '', city: '', phone: '', notes: '' })
+      setForm({ foodName: '', quantity: '', foodType: 'Vegetarian', expiryTime: '', address: '', city: '', phone: '', notes: '' })
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to submit.')
     } finally { setLoading(false) }
@@ -223,11 +230,12 @@ export default function DonatePage() {
                           <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6d7a72] text-lg">eco</span>
                           <select value={form.foodType} onChange={set('foodType')}
                             className={`${inputCls} pl-11 cursor-pointer`} style={inputStyle}>
-                            <option value="vegetarian">🌿 Vegetarian</option>
-                            <option value="non-vegetarian">🍗 Non-Vegetarian</option>
-                            <option value="vegan">🥦 Vegan</option>
-                            <option value="bakery">🍞 Bakery & Snacks</option>
-                            <option value="fruits">🍎 Fruits & Produce</option>
+                            <option value="Vegetarian">🌿 Vegetarian</option>
+                            <option value="Non-Vegetarian">🍗 Non-Vegetarian</option>
+                            <option value="Vegan">🥦 Vegan</option>
+                            <option value="Bakery">🍞 Bakery & Snacks</option>
+                            <option value="Fruits & Produce">🍎 Fruits & Produce</option>
+                              <option value="Mixed">🍱 Mixed</option>
                           </select>
                         </div>
                       </div>

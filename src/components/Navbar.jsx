@@ -10,15 +10,15 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
 
-  // Hide top Navbar on portal/dashboard routes that have their own sidebar
-  const isDashboardRoute = ['/donate', '/ngo', '/volunteer', '/admin', '/donations'].includes(location.pathname)
-  if (isDashboardRoute) return null
-
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60)
     window.addEventListener('scroll', onScroll)
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  // Hide top Navbar on portal/dashboard routes that have their own sidebar
+  const isDashboardRoute = ['/donate', '/ngo', '/volunteer', '/admin', '/donations'].includes(location.pathname)
+  if (isDashboardRoute) return null
 
   const handleLogout = () => { logout(); navigate('/') }
 

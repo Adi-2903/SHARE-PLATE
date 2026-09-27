@@ -11,7 +11,7 @@ const donationSchema = new mongoose.Schema(
     donorType:   { type: String, required: true }, // Restaurant | Hotel | Hostel | Cafeteria
     foodName:    { type: String, required: true },
     quantity:    { type: Number, required: true, min: 1 },
-    foodType:    { type: String, enum: ['Vegetarian', 'Non-Vegetarian', 'Vegan', 'Mixed'], default: 'Vegetarian' },
+    foodType:    { type: String, enum: ['Vegetarian', 'Non-Vegetarian', 'Vegan', 'Bakery', 'Fruits & Produce', 'Mixed'], default: 'Vegetarian' },
     expiryTime:  { type: Date, required: true },
     address:     { type: String, required: true },
     city:        { type: String, required: true },

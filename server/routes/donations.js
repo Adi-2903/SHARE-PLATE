@@ -5,28 +5,46 @@ import {
   createDonation,
   claimDonation,
   assignVolunteer,
+  markTransit,
   markDelivered,
+  updateStatus,
+  deleteDonation,
+  getMyDonations,
   getStats,
 } from '../controllers/donationController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Public
+// ── Public ──────────────────────────────────────────────────
 router.get('/stats', getStats);
-router.get('/',      getDonations);
-router.get('/:id',   getDonationById);
+router.get('/', getDonations);
 
-// Donor: create donation
+// ── Donor: my own donations ──────────────────────────────────
+// IMPORTANT: /my MUST be registered BEFORE /:id to avoid Mongoose CastError
+router.get('/my', protect, authorize('donor', 'admin'), getMyDonations);
+
+router.get('/:id', getDonationById);
+
+// ── Donor: create donation ───────────────────────────────────
 router.post('/', protect, authorize('donor', 'admin'), createDonation);
 
-// NGO: claim donation
+// ── NGO: claim donation ──────────────────────────────────────
 router.patch('/:id/claim', protect, authorize('ngo', 'admin'), claimDonation);
 
-// Admin / NGO: assign volunteer
+// ── NGO / Admin: assign volunteer ───────────────────────────
 router.patch('/:id/assign', protect, authorize('ngo', 'admin'), assignVolunteer);
 
-// Volunteer / Admin: mark delivered
+// ── Volunteer / Admin: confirm pickup (in_transit) ──────────
+router.patch('/:id/transit', protect, authorize('volunteer', 'admin'), markTransit);
+
+// ── Volunteer / Admin: mark delivered ───────────────────────
 router.patch('/:id/deliver', protect, authorize('volunteer', 'admin'), markDelivered);
+
+// ── Admin: update any status field ──────────────────────────
+router.patch('/:id/status', protect, authorize('admin'), updateStatus);
+
+// ── Admin: delete donation ───────────────────────────────────
+router.delete('/:id', protect, authorize('admin'), deleteDonation);
 
 export default router;

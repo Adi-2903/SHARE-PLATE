@@ -83,11 +83,19 @@ export default function VolunteerDashboard() {
     setLoading(true)
     api.get('/donations').then(({ data }) => {
       setDonations(data)
-      const inProgress = data.filter(d => d.status === 'claimed' || d.status === 'in_transit')
-      const delivered = data.filter(d => d.status === 'delivered')
-      setMyDeliveries(inProgress)
-      const total = delivered.length
-      const meals = delivered.reduce((a, d) => a + (Number(d.quantity) || 0), 0)
+      // Active: claimed/in_transit donations assigned to THIS volunteer
+      const myActive = data.filter(d => {
+        const volId = d.volunteer?._id || d.volunteer
+        return (d.status === 'claimed' || d.status === 'in_transit') && volId && String(volId) === String(user?._id)
+      })
+      // Delivered: completed by this volunteer
+      const myDelivered = data.filter(d => {
+        const volId = d.volunteer?._id || d.volunteer
+        return d.status === 'delivered' && volId && String(volId) === String(user?._id)
+      })
+      setMyDeliveries(myActive)
+      const total = myDelivered.length
+      const meals = myDelivered.reduce((a, d) => a + (Number(d.quantity) || 0), 0)
       setStats({ totalDeliveries: total, mealsDelivered: meals, kmRidden: Math.floor(total * 3.4), co2Saved: Math.floor(meals * 0.5) })
     }).catch(() => {}).finally(() => setLoading(false))
   }
