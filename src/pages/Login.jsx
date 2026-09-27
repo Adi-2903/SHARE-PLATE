@@ -82,10 +82,16 @@ export default function Login() {
 
   // Auto-register if not present, then login
   const demoLogin = async (account) => {
+    // Visually populate the form
+    setForm({ email: account.email, password: account.password })
     setDemoLoading(account.label)
     const toastId = toast.loading(`⏳ Setting up ${account.label} demo…`)
+    
+    // Slight delay so they can see the fields populate
+    await new Promise(r => setTimeout(r, 600))
+
     try {
-      // Step 1: Try to login directly
+      // Step 1: Try to login directly (AuthContext will mock this if offline)
       const user = await login(account.email, account.password)
       toast.success(`✅ Logged in as ${account.role}!`, { id: toastId })
       navigate(ROLE_ROUTES[user.role] || '/')
@@ -112,7 +118,6 @@ export default function Login() {
           toast.success(`✅ Demo account created! Logged in as ${account.role} 🎉`, { id: toastId })
           navigate(ROLE_ROUTES[user.role] || '/')
         } catch (regErr) {
-          // Account might already exist with wrong password — just show error
           toast.error(
             regErr.response?.data?.error || 'Could not create demo account. Is the backend running?',
             { id: toastId }
