@@ -10,78 +10,120 @@ function SideNav({ user }) {
   const { logout } = useAuth()
   const navigate = useNavigate()
   const links = [
-    { icon: 'home', label: 'Home Page', to: '/' },
-    { icon: 'volunteer_activism', label: 'Donate Surplus', to: '/donate', active: true },
-    { icon: 'lunch_dining', label: 'Food Rescue Board', to: '/donations' },
+    { icon: 'home', label: 'Home', to: '/' },
+    { icon: 'volunteer_activism', label: 'Donate', to: '/donate', active: true },
+    { icon: 'lunch_dining', label: 'Board', to: '/donations' },
   ]
   if (user?.role === 'admin') {
-    links.push({ icon: 'admin_panel_settings', label: 'Admin Console', to: '/admin' })
+    links.push({ icon: 'admin_panel_settings', label: 'Admin', to: '/admin' })
   }
+  const handleLogout = () => { logout(); navigate('/') }
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-64 flex flex-col justify-between py-6 px-4 z-40"
-      style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(20px)', borderRight: '1px solid rgba(188,202,192,0.3)', boxShadow: '1px 0 8px rgba(0,105,72,0.04)' }}>
-      <div className="space-y-5">
-        {/* Brand */}
-        <Link to="/" className="flex items-center gap-3 px-2 pt-2">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center text-white"
-            style={{ background: 'rgba(0,133,93,0.85)' }}>
-            <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>eco</span>
-          </div>
-          <div>
-            <span className="block font-extrabold text-base tracking-tight" style={{ ...S, color: '#006948' }}>SharePlate</span>
-            <span className="block text-[11px] uppercase tracking-wider text-[#6d7a72]">Food Rescue OS</span>
-          </div>
-        </Link>
+    <>
+      {/* ── DESKTOP SIDEBAR (hidden on mobile) ── */}
+      <aside className="hidden lg:flex fixed left-0 top-0 h-full w-64 flex-col justify-between py-6 px-4 z-40"
+        style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(20px)', borderRight: '1px solid rgba(188,202,192,0.3)', boxShadow: '1px 0 8px rgba(0,105,72,0.04)' }}>
+        <div className="space-y-5">
+          {/* Brand */}
+          <Link to="/" className="flex items-center gap-3 px-2 pt-2">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-white"
+              style={{ background: 'rgba(0,133,93,0.85)' }}>
+              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>eco</span>
+            </div>
+            <div>
+              <span className="block font-extrabold text-base tracking-tight" style={{ ...S, color: '#006948' }}>SharePlate</span>
+              <span className="block text-[11px] uppercase tracking-wider text-[#6d7a72]">Food Rescue OS</span>
+            </div>
+          </Link>
 
-        {/* User profile card */}
-        <div className="p-3 rounded-xl border flex items-center gap-3"
-          style={{ background: 'rgba(242,243,255,0.8)', borderColor: 'rgba(188,202,192,0.5)' }}>
-          <div className="relative w-11 h-11 rounded-full overflow-hidden border shrink-0"
-            style={{ borderColor: 'rgba(0,105,72,0.2)' }}>
-            <div className="w-full h-full flex items-center justify-center" style={{ background: 'rgba(0,133,93,0.12)' }}>
-              <span className="material-symbols-outlined text-2xl" style={{ color: '#006948' }}>restaurant</span>
+          {/* User profile card */}
+          <div className="p-3 rounded-xl border flex items-center gap-3"
+            style={{ background: 'rgba(242,243,255,0.8)', borderColor: 'rgba(188,202,192,0.5)' }}>
+            <div className="relative w-11 h-11 rounded-full overflow-hidden border shrink-0"
+              style={{ borderColor: 'rgba(0,105,72,0.2)' }}>
+              <div className="w-full h-full flex items-center justify-center" style={{ background: 'rgba(0,133,93,0.12)' }}>
+                <span className="material-symbols-outlined text-2xl" style={{ color: '#006948' }}>restaurant</span>
+              </div>
+              <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white" style={{ background: '#006948' }} />
             </div>
-            <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white" style={{ background: '#006948' }} />
-          </div>
-          <div className="overflow-hidden">
-            <div className="flex items-center gap-1">
-              <h4 className="text-sm font-bold text-[#131b2e] truncate">{user?.orgName || `${user?.firstName || 'Donor'}'s Kitchen`}</h4>
-              <span className="material-symbols-outlined text-base" style={{ color: '#006948', fontVariationSettings: "'FILL' 1", fontSize: '16px' }}>verified</span>
+            <div className="overflow-hidden">
+              <div className="flex items-center gap-1">
+                <h4 className="text-sm font-bold text-[#131b2e] truncate">{user?.orgName || `${user?.firstName || 'Donor'}'s Kitchen`}</h4>
+                <span className="material-symbols-outlined text-base" style={{ color: '#006948', fontVariationSettings: "'FILL' 1", fontSize: '16px' }}>verified</span>
+              </div>
+              <span className="text-xs text-[#3d4a42]">Donor Partner</span>
             </div>
-            <span className="text-xs text-[#3d4a42]">Donor Partner</span>
           </div>
+
+          {/* Quick action */}
+          <button className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-full text-white text-sm font-bold shadow-md transition-all hover:scale-[1.02] active:scale-[0.98]"
+            style={{ background: 'linear-gradient(135deg, #006948, #00855d)', boxShadow: '0 8px 20px -4px rgba(0,105,72,0.3)' }}>
+            <span className="material-symbols-outlined text-xl">add_circle</span>
+            Donate Food
+          </button>
+
+          {/* Nav */}
+          <nav className="space-y-1 pt-1">
+            {links.map((l, i) => (
+              <Link key={i} to={l.to}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all"
+                style={l.active
+                  ? { background: 'rgba(108,248,187,0.35)', color: '#00714d' }
+                  : { color: '#3d4a42' }}
+                onMouseEnter={e => { if (!l.active) e.currentTarget.style.background = 'rgba(234,237,255,0.6)' }}
+                onMouseLeave={e => { if (!l.active) e.currentTarget.style.background = 'transparent' }}>
+                <span className="material-symbols-outlined text-xl" style={l.active ? { fontVariationSettings: "'FILL' 1" } : {}}>{l.icon}</span>
+                <span>{l.label}</span>
+              </Link>
+            ))}
+          </nav>
         </div>
 
-        {/* Quick action */}
-        <button className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-full text-white text-sm font-bold shadow-md transition-all hover:scale-[1.02] active:scale-[0.98]"
-          style={{ background: 'linear-gradient(135deg, #006948, #00855d)', boxShadow: '0 8px 20px -4px rgba(0,105,72,0.3)' }}>
-          <span className="material-symbols-outlined text-xl">add_circle</span>
-          Donate Food
+        <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-full text-sm font-semibold text-[#3d4a42] transition-all hover:bg-red-50 hover:text-red-600 text-left">
+          <span className="material-symbols-outlined text-xl">logout</span>
+          Sign Out
         </button>
+      </aside>
 
-        {/* Nav */}
-        <nav className="space-y-1 pt-1">
-          {links.map((l, i) => (
-            <Link key={i} to={l.to}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all"
-              style={l.active
-                ? { background: 'rgba(108,248,187,0.35)', color: '#00714d' }
-                : { color: '#3d4a42' }}
-              onMouseEnter={e => { if (!l.active) e.currentTarget.style.background = 'rgba(234,237,255,0.6)' }}
-              onMouseLeave={e => { if (!l.active) e.currentTarget.style.background = 'transparent' }}>
-              <span className="material-symbols-outlined text-xl" style={l.active ? { fontVariationSettings: "'FILL' 1" } : {}}>{l.icon}</span>
-              <span>{l.label}</span>
-            </Link>
-          ))}
-        </nav>
-      </div>
+      {/* ── MOBILE TOP BAR ── */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 border-b"
+        style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(20px)', borderColor: 'rgba(188,202,192,0.3)' }}>
+        <Link to="/" className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white" style={{ background: '#006948' }}>
+            <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>eco</span>
+          </div>
+          <span className="font-extrabold text-base tracking-tight" style={{ ...S, color: '#006948' }}>SharePlate</span>
+        </Link>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-[#3d4a42] hidden sm:block truncate max-w-[120px]">
+            {user?.orgName || user?.firstName}
+          </span>
+          <button onClick={handleLogout}
+            className="p-2 rounded-full text-[#6d7a72] hover:bg-red-50 hover:text-red-500 transition-all">
+            <span className="material-symbols-outlined text-xl">logout</span>
+          </button>
+        </div>
+      </header>
 
-      <button onClick={() => { logout(); navigate('/') }} className="w-full flex items-center gap-3 px-4 py-3 rounded-full text-sm font-semibold text-[#3d4a42] transition-all hover:bg-red-50 hover:text-red-600 text-left">
-        <span className="material-symbols-outlined text-xl">logout</span>
-        Sign Out
-      </button>
-    </aside>
+      {/* ── MOBILE BOTTOM NAV ── */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 h-16 flex items-center justify-around border-t"
+        style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(20px)', borderColor: 'rgba(188,202,192,0.3)' }}>
+        {links.map((l, i) => (
+          <Link key={i} to={l.to}
+            className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all min-w-[56px]"
+            style={l.active ? { color: '#006948' } : { color: '#6d7a72' }}>
+            <span className="material-symbols-outlined text-2xl" style={l.active ? { fontVariationSettings: "'FILL' 1" } : {}}>{l.icon}</span>
+            <span className="text-[10px] font-semibold">{l.label}</span>
+          </Link>
+        ))}
+        <button onClick={handleLogout}
+          className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all min-w-[56px] text-[#6d7a72] hover:text-red-500">
+          <span className="material-symbols-outlined text-2xl">logout</span>
+          <span className="text-[10px] font-semibold">Logout</span>
+        </button>
+      </nav>
+    </>
   )
 }
 
@@ -164,7 +206,7 @@ export default function DonatePage() {
 
       <SideNav user={user} />
 
-      <main className="flex-1 ml-64 p-8">
+      <main className="flex-1 lg:ml-64 pt-16 lg:pt-0 pb-20 lg:pb-0 p-4 sm:p-6 lg:p-8">
         {/* Page header */}
         <div className="mb-8">
           <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#006948' }}>Donor Portal</span>
@@ -214,7 +256,7 @@ export default function DonatePage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-semibold text-[#131b2e] mb-1.5">Quantity (servings) *</label>
                         <div className="relative">
@@ -270,7 +312,7 @@ export default function DonatePage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-semibold text-[#131b2e] mb-1.5">City *</label>
                         <div className="relative">

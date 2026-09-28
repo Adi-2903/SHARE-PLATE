@@ -287,7 +287,7 @@ export default function Login() {
               </div>
 
               <form onSubmit={handleRegister} className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <InputField label="First Name" icon="person" value={regForm.firstName} onChange={e => setRegForm({...regForm,firstName:e.target.value})} placeholder="Rohan" required />
                   <InputField label="Last Name" icon="person" value={regForm.lastName} onChange={e => setRegForm({...regForm,lastName:e.target.value})} placeholder="Kumar" required />
                 </div>
@@ -295,7 +295,7 @@ export default function Login() {
                   <InputField label="Organization Name" icon="store" value={regForm.orgName} onChange={e => setRegForm({...regForm,orgName:e.target.value})} placeholder="Your Restaurant / NGO" />
                 )}
                 <InputField label="Email Address" icon="mail" type="email" value={regForm.email} onChange={e => setRegForm({...regForm,email:e.target.value})} placeholder="you@example.com" required />
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <InputField label="Phone" icon="phone" value={regForm.phone} onChange={e => setRegForm({...regForm,phone:e.target.value})} placeholder="9876543210" required />
                   <InputField label="City" icon="location_city" value={regForm.city} onChange={e => setRegForm({...regForm,city:e.target.value})} placeholder="Pune" required />
                 </div>

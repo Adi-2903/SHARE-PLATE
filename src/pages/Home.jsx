@@ -146,7 +146,7 @@ export default function Home() {
             </div>
 
             {/* Headline */}
-            <h1 className="text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               Rescue Food. <br />
               <span style={{ background: 'linear-gradient(135deg, #006948, #00855d, #006c4a)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
                 Feed Communities.
@@ -201,7 +201,7 @@ export default function Home() {
               {/* Glass image frame */}
               <div className="relative rounded-2xl overflow-hidden p-3 border shadow-2xl"
                 style={{ background: 'rgba(255,255,255,0.78)', backdropFilter: 'blur(18px)', borderColor: 'rgba(255,255,255,0.95)' }}>
-                <div className="relative w-full h-[420px] rounded-xl overflow-hidden">
+                <div className="relative w-full h-[240px] sm:h-[340px] lg:h-[420px] rounded-xl overflow-hidden">
                   {/* Food image */}
                   <img
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuCA2VDzBRlrhP-1daSxRAi7YOIKvKYvC-17N4HEdXB576YNW1Rg83JwfCSDS2KEKcMTMTkgUcOw9pTHZLHhZ2RN1956k6JhL0FnuuMfZWvqmvN4DDkVncW5YVHTq3TKU6RT9pq-zTUwQoRhiTerK9Zj_nyR8D52tXbdoTgeBhdSxQxz9aMEz3Hpis-2Q6MXeIOfD_fO6P7nzdOvb4vJB5gOfjQE-9B1MJ03br87tvRTUe-nsS34LAdjldoroLtuzm0k8my3gfDLA6o"
@@ -250,14 +250,15 @@ export default function Home() {
       <section ref={statsRef} className="max-w-7xl mx-auto px-6 lg:px-20 -mt-2 mb-20" id="impact">
         <div className="rounded-2xl p-6 lg:p-8 border shadow-lg"
           style={{ background: 'rgba(255,255,255,0.78)', backdropFilter: 'blur(18px)', borderColor: 'rgba(188,202,192,0.3)' }}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 divide-y md:divide-y-0 md:divide-x" style={{ divideColor: 'rgba(188,202,192,0.3)' }}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
             {[
               { icon: 'skillet', value: `${meals.toLocaleString()}+`, label: 'Meals Rescued', sub: 'Redistributed to local care kitchens', color: '#006948' },
               { icon: 'volunteer_activism', value: ngos.toLocaleString(), label: 'Active NGOs & Shelters', sub: 'Verified on-demand partners', color: '#006c49' },
               { icon: 'compost', value: `${(co2 / 10).toFixed(1)} tons`, label: 'Carbon Saved (CO₂e)', sub: 'Measurable climate prevention', color: '#825100' },
             ].map((s, i) => (
-              <div key={i} className="flex items-center gap-5 pt-4 md:pt-0 md:px-6">
+              <div key={i} className={`flex items-center gap-5 pt-4 md:pt-0 md:px-6 ${i > 0 ? 'border-t md:border-t-0 md:border-l' : ''}`}
+                style={{ borderColor: 'rgba(188,202,192,0.3)' }}>
                 <div className="w-14 h-14 rounded-full flex items-center justify-center shrink-0"
                   style={{ background: i === 2 ? 'rgba(255,221,184,0.4)' : 'rgba(0,105,72,0.1)', color: s.color }}>
                   <span className="material-symbols-outlined text-3xl">{s.icon}</span>

@@ -10,58 +10,98 @@ function SideNav({ user, active }) {
   const { logout } = useAuth()
   const navigate = useNavigate()
   const links = [
-    { id: 'home', icon: 'home', label: 'Home Page', to: '/' },
-    { id: 'dashboard', icon: 'electric_moped', label: 'Volunteer Hub', to: '/volunteer' },
-    { id: 'board', icon: 'lunch_dining', label: 'Food Board', to: '/donations' },
+    { id: 'home', icon: 'home', label: 'Home', to: '/' },
+    { id: 'dashboard', icon: 'electric_moped', label: 'Hub', to: '/volunteer' },
+    { id: 'board', icon: 'lunch_dining', label: 'Board', to: '/donations' },
   ]
   if (user?.role === 'admin') {
-    links.push({ id: 'admin', icon: 'admin_panel_settings', label: 'Admin Console', to: '/admin' })
+    links.push({ id: 'admin', icon: 'admin_panel_settings', label: 'Admin', to: '/admin' })
   }
+  const handleLogout = () => { logout(); navigate('/') }
+
   return (
-    <aside className="fixed left-0 top-0 h-full w-64 flex flex-col justify-between py-6 px-4 z-40"
-      style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(20px)', borderRight: '1px solid rgba(188,202,192,0.3)' }}>
-      <div>
-        <Link to="/" className="flex items-center gap-3 px-3 mb-6">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(0,105,72,0.1)' }}>
-            <span className="material-symbols-outlined text-2xl" style={{ color: '#006948' }}>eco</span>
-          </div>
-          <div>
-            <span className="block font-bold text-base tracking-tight" style={{ ...S, color: '#006948' }}>SharePlate</span>
-            <span className="block text-[11px] text-[#6d7a72]">Eco-Rescue Hub</span>
-          </div>
-        </Link>
+    <>
+      {/* ── DESKTOP SIDEBAR ── */}
+      <aside className="hidden lg:flex fixed left-0 top-0 h-full w-64 flex-col justify-between py-6 px-4 z-40"
+        style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(20px)', borderRight: '1px solid rgba(188,202,192,0.3)' }}>
+        <div>
+          <Link to="/" className="flex items-center gap-3 px-3 mb-6">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(0,105,72,0.1)' }}>
+              <span className="material-symbols-outlined text-2xl" style={{ color: '#006948' }}>eco</span>
+            </div>
+            <div>
+              <span className="block font-bold text-base tracking-tight" style={{ ...S, color: '#006948' }}>SharePlate</span>
+              <span className="block text-[11px] text-[#6d7a72]">Eco-Rescue Hub</span>
+            </div>
+          </Link>
 
-        {/* Volunteer mini badge */}
-        <div className="rounded-xl border p-3 mb-5 flex items-center gap-3"
-          style={{ background: 'rgba(242,243,255,0.7)', borderColor: 'rgba(188,202,192,0.3)' }}>
-          <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0" style={{ background: '#eaedff', border: '2px solid rgba(0,105,72,0.2)' }}>
-            <span className="material-symbols-outlined text-2xl absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ color: '#006948' }}>directions_bike</span>
-            <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white" style={{ background: '#006948' }} />
+          {/* Volunteer mini badge */}
+          <div className="rounded-xl border p-3 mb-5 flex items-center gap-3"
+            style={{ background: 'rgba(242,243,255,0.7)', borderColor: 'rgba(188,202,192,0.3)' }}>
+            <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0" style={{ background: '#eaedff', border: '2px solid rgba(0,105,72,0.2)' }}>
+              <span className="material-symbols-outlined text-2xl absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ color: '#006948' }}>directions_bike</span>
+              <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white" style={{ background: '#006948' }} />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-[#131b2e]">{user?.firstName} {user?.lastName}</h4>
+              <span className="text-xs font-semibold" style={{ color: '#006948' }}>Volunteer • Level 1</span>
+            </div>
           </div>
-          <div>
-            <h4 className="text-sm font-bold text-[#131b2e]">{user?.firstName} {user?.lastName}</h4>
-            <span className="text-xs font-semibold" style={{ color: '#006948' }}>Volunteer • Level 1</span>
-          </div>
+
+          <nav className="space-y-1">
+            {links.map(l => (
+              <Link key={l.id} to={l.to}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all"
+                style={active === l.id ? { background: 'rgba(108,248,187,0.35)', color: '#00714d' } : { color: '#3d4a42' }}
+                onMouseEnter={e => { if (active !== l.id) e.currentTarget.style.background = 'rgba(234,237,255,0.6)' }}
+                onMouseLeave={e => { if (active !== l.id) e.currentTarget.style.background = 'transparent' }}>
+                <span className="material-symbols-outlined text-xl">{l.icon}</span>
+                <span>{l.label}</span>
+              </Link>
+            ))}
+          </nav>
         </div>
+        <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-full text-sm font-semibold text-[#3d4a42] hover:bg-red-50 hover:text-red-600 transition-all text-left">
+          <span className="material-symbols-outlined text-xl">logout</span>
+          Sign Out
+        </button>
+      </aside>
 
-        <nav className="space-y-1">
-          {links.map(l => (
-            <Link key={l.id} to={l.to}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all"
-              style={active === l.id ? { background: 'rgba(108,248,187,0.35)', color: '#00714d' } : { color: '#3d4a42' }}
-              onMouseEnter={e => { if (active !== l.id) e.currentTarget.style.background = 'rgba(234,237,255,0.6)' }}
-              onMouseLeave={e => { if (active !== l.id) e.currentTarget.style.background = 'transparent' }}>
-              <span className="material-symbols-outlined text-xl">{l.icon}</span>
-              <span>{l.label}</span>
-            </Link>
-          ))}
-        </nav>
-      </div>
-      <button onClick={() => { logout(); navigate('/') }} className="w-full flex items-center gap-3 px-4 py-3 rounded-full text-sm font-semibold text-[#3d4a42] hover:bg-red-50 hover:text-red-600 transition-all text-left">
-        <span className="material-symbols-outlined text-xl">logout</span>
-        Sign Out
-      </button>
-    </aside>
+      {/* ── MOBILE TOP BAR ── */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 border-b"
+        style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(20px)', borderColor: 'rgba(188,202,192,0.3)' }}>
+        <Link to="/" className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(0,105,72,0.1)' }}>
+            <span className="material-symbols-outlined text-base" style={{ color: '#006948' }}>eco</span>
+          </div>
+          <span className="font-bold text-base tracking-tight" style={{ ...S, color: '#006948' }}>SharePlate</span>
+        </Link>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold" style={{ color: '#006948' }}>Volunteer</span>
+          <button onClick={handleLogout} className="p-2 rounded-full text-[#6d7a72] hover:bg-red-50 hover:text-red-500 transition-all">
+            <span className="material-symbols-outlined text-xl">logout</span>
+          </button>
+        </div>
+      </header>
+
+      {/* ── MOBILE BOTTOM NAV ── */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 h-16 flex items-center justify-around border-t"
+        style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(20px)', borderColor: 'rgba(188,202,192,0.3)' }}>
+        {links.map(l => (
+          <Link key={l.id} to={l.to}
+            className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all min-w-[56px]"
+            style={active === l.id ? { color: '#006948' } : { color: '#6d7a72' }}>
+            <span className="material-symbols-outlined text-2xl" style={active === l.id ? { fontVariationSettings: "'FILL' 1" } : {}}>{l.icon}</span>
+            <span className="text-[10px] font-semibold">{l.label}</span>
+          </Link>
+        ))}
+        <button onClick={handleLogout}
+          className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all min-w-[56px] text-[#6d7a72] hover:text-red-500">
+          <span className="material-symbols-outlined text-2xl">logout</span>
+          <span className="text-[10px] font-semibold">Logout</span>
+        </button>
+      </nav>
+    </>
   )
 }
 
@@ -138,7 +178,7 @@ export default function VolunteerDashboard() {
 
       <SideNav user={user} active="dashboard" />
 
-      <main className="flex-1 ml-64 p-8 overflow-x-hidden">
+      <main className="flex-1 lg:ml-64 pt-16 lg:pt-0 pb-20 lg:pb-0 p-4 sm:p-6 lg:p-8 overflow-x-hidden">
         {/* Greeting bar */}
         <div className="flex items-start justify-between mb-8">
           <div>
