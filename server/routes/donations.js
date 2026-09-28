@@ -38,8 +38,8 @@ router.patch('/:id/assign', protect, authorize('ngo', 'admin'), assignVolunteer)
 // ── Volunteer / Admin: confirm pickup (in_transit) ──────────
 router.patch('/:id/transit', protect, authorize('volunteer', 'admin'), markTransit);
 
-// ── Volunteer / Admin: mark delivered ───────────────────────
-router.patch('/:id/deliver', protect, authorize('volunteer', 'admin'), markDelivered);
+// ── Volunteer / NGO / Admin: mark delivered ─────────────────
+router.patch('/:id/deliver', protect, authorize('volunteer', 'ngo', 'admin'), markDelivered);
 
 // ── Admin: update any status field ──────────────────────────
 router.patch('/:id/status', protect, authorize('admin'), updateStatus);

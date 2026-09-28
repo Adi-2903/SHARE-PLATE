@@ -140,7 +140,7 @@ export default function VolunteerDashboard() {
     }).catch(() => {}).finally(() => setLoading(false))
   }
 
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => { fetchData() }, [user?._id])
 
   const handlePickup = async (id) => {
     try {
@@ -169,8 +169,6 @@ export default function VolunteerDashboard() {
 
   return (
     <div className="flex min-h-screen" style={{ background: '#faf8ff', fontFamily: "'Inter', sans-serif" }}>
-      <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
       {/* Ambient glows */}
       <div className="fixed top-[-10%] left-[20%] w-[500px] h-[500px] rounded-full blur-[120px] pointer-events-none -z-10" style={{ background: 'rgba(78,222,163,0.15)' }} />
@@ -195,8 +193,8 @@ export default function VolunteerDashboard() {
 
         {/* Stat cards */}
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
-          {STAT_CARDS.map((s, i) => (
-            <div key={i} className="rounded-2xl p-5 transition-all hover:-translate-y-0.5"
+          {STAT_CARDS.map((s) => (
+            <div key={s.label} className="rounded-2xl p-5 transition-all hover:-translate-y-0.5"
               style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 8px 20px -4px rgba(0,105,72,0.05)' }}>
               <div className="w-11 h-11 rounded-full flex items-center justify-center mb-4" style={{ background: s.bg }}>
                 <span className="material-symbols-outlined text-2xl" style={{ color: s.color }}>{s.icon}</span>
@@ -294,11 +292,11 @@ export default function VolunteerDashboard() {
                         <div className="text-sm font-bold text-[#131b2e]">{d.foodName}</div>
                         <div className="text-xs text-[#3d4a42]">{d.quantity} servings • {d.city}</div>
                       </div>
-                      <button onClick={() => handlePickup(d._id)}
-                        className="text-xs font-bold px-4 py-1.5 rounded-full text-white transition-all hover:scale-105"
-                        style={{ background: 'linear-gradient(135deg, #006948, #00855d)' }}>
-                        Accept Pickup
-                      </button>
+                      <Link to="/donations"
+                        className="text-xs font-bold px-4 py-1.5 rounded-full border transition-all hover:bg-emerald-50"
+                        style={{ borderColor: 'rgba(0,105,72,0.3)', color: '#006948' }}>
+                        View Board
+                      </Link>
                     </div>
                   ))}
                 </div>

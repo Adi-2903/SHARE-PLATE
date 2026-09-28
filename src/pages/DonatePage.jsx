@@ -191,11 +191,32 @@ export default function DonatePage() {
 
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.value })
 
+  const validateStep = (currentStep) => {
+    if (currentStep === 1) {
+      if (!form.foodName.trim()) { toast.error('Please enter a food item name.'); return false }
+      if (!form.quantity || Number(form.quantity) < 1) { toast.error('Quantity must be at least 1 serving.'); return false }
+    }
+    if (currentStep === 2) {
+      if (!form.address.trim()) { toast.error('Please enter a pickup address.'); return false }
+      if (!form.city.trim()) { toast.error('Please enter a city.'); return false }
+      if (!form.phone.trim()) { toast.error('Please enter a contact phone.'); return false }
+      if (!form.expiryTime) { toast.error('Please set the food expiry time.'); return false }
+    }
+    return true
+  }
+
+  const goToStep = (from, to) => {
+    if (to > from && !validateStep(from)) return
+    setStep(to)
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!validateStep(1) || !validateStep(2)) return
     setLoading(true)
     try {
-      await api.post('/donations', form)
+      const payload = { ...form, quantity: Number(form.quantity) }
+      await api.post('/donations', payload)
       toast.success('🎉 Donation listed! NGOs are being notified.')
       const { data } = await api.get('/donations/my')
       setHistory(data)
@@ -300,7 +321,7 @@ export default function DonatePage() {
                         onFocus={e => e.target.style.borderColor = '#006948'} onBlur={e => e.target.style.borderColor = 'rgba(188,202,192,0.5)'} />
                     </div>
 
-                    <button type="button" onClick={() => setStep(2)}
+                    <button type="button" onClick={() => goToStep(1, 2)}
                       className="w-full py-3.5 rounded-full text-sm font-bold text-white flex items-center justify-center gap-2 transition-all hover:scale-[1.01]"
                       style={{ background: 'linear-gradient(135deg, #006948, #00855d)' }}>
                       Continue to Location & Expiry
@@ -357,12 +378,12 @@ export default function DonatePage() {
                     {form.expiryTime && <UrgencyBadge expiryTime={form.expiryTime} />}
 
                     <div className="flex gap-3">
-                      <button type="button" onClick={() => setStep(1)}
+                      <button type="button" onClick={() => goToStep(2, 1)}
                         className="flex-1 py-3.5 rounded-full text-sm font-bold text-[#3d4a42] border transition-all hover:bg-gray-50"
                         style={{ borderColor: 'rgba(188,202,192,0.5)' }}>
                         ← Back
                       </button>
-                      <button type="button" onClick={() => setStep(3)}
+                      <button type="button" onClick={() => goToStep(2, 3)}
                         className="flex-[2] py-3.5 rounded-full text-sm font-bold text-white flex items-center justify-center gap-2 transition-all hover:scale-[1.01]"
                         style={{ background: 'linear-gradient(135deg, #006948, #00855d)' }}>
                         Review Donation
@@ -396,7 +417,7 @@ export default function DonatePage() {
                     {form.expiryTime && <UrgencyBadge expiryTime={form.expiryTime} />}
 
                     <div className="flex gap-3">
-                      <button type="button" onClick={() => setStep(2)}
+                      <button type="button" onClick={() => goToStep(3, 2)}
                         className="flex-1 py-3.5 rounded-full text-sm font-bold text-[#3d4a42] border transition-all hover:bg-gray-50"
                         style={{ borderColor: 'rgba(188,202,192,0.5)' }}>
                         ← Edit

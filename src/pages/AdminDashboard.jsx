@@ -185,12 +185,10 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex min-h-screen" style={{ background: '#faf8ff', fontFamily: "'Inter', sans-serif" }}>
-      <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
       <SideNav active="overview" user={user} />
 
-      <main className="flex-1 ml-64 p-8 overflow-x-hidden">
+      <main className="flex-1 ml-0 lg:ml-64 pt-4 lg:pt-8 pb-20 lg:pb-0 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
           <div>
@@ -309,7 +307,7 @@ export default function AdminDashboard() {
                           </td>
                           <td className="px-5 py-3.5">
                             <div className="flex items-center gap-2">
-                              <select defaultValue={d.status}
+                              <select value={d.status}
                                 onChange={e => handleStatusUpdate(d._id, e.target.value)}
                                 className="text-xs px-3 py-1.5 rounded-full outline-none cursor-pointer"
                                 style={{ background: 'rgba(234,237,255,0.7)', border: '1px solid rgba(188,202,192,0.4)', color: '#3d4a42' }}>

@@ -153,7 +153,7 @@ export default function NGODashboard() {
     }).catch(() => {}).finally(() => setLoading(false))
   }
 
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => { fetchData() }, [user?._id])
 
   const handleClaim = async (id) => {
     try {
@@ -187,8 +187,6 @@ export default function NGODashboard() {
 
   return (
     <div className="flex min-h-screen" style={{ background: 'linear-gradient(135deg, #faf8ff, #f5fbf7)', fontFamily: "'Inter', sans-serif" }}>
-      <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
       {/* Ambient glows */}
       <div className="fixed top-0 left-64 right-0 h-80 pointer-events-none -z-10" style={{ background: 'linear-gradient(to bottom, rgba(133,248,196,0.15), transparent)' }} />
@@ -217,8 +215,8 @@ export default function NGODashboard() {
 
         {/* Stat cards */}
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
-          {STAT_CARDS.map((s, i) => (
-            <div key={i} className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 8px 20px -4px rgba(0,105,72,0.05)' }}>
+          {STAT_CARDS.map((s) => (
+            <div key={s.label} className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 8px 20px -4px rgba(0,105,72,0.05)' }}>
               <div className="w-11 h-11 rounded-full flex items-center justify-center mb-4" style={{ background: s.bg }}>
                 <span className="material-symbols-outlined text-2xl" style={{ color: s.color }}>{s.icon}</span>
               </div>

@@ -211,8 +211,6 @@ export default function DonationsBoard() {
 
   return (
     <div className="flex min-h-screen" style={{ background: 'linear-gradient(135deg, #faf8ff, #f5fbf7, rgba(234,237,255,0.4))', fontFamily: "'Inter', sans-serif" }}>
-      <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
       <SideNav active="board" user={user} />
 
@@ -348,6 +346,11 @@ export default function DonationsBoard() {
                     ) : d.status === 'delivered' ? (
                       <div className="w-full py-2.5 px-4 rounded-full text-xs font-semibold text-center" style={{ background: 'rgba(234,237,255,0.6)', border: '1px solid rgba(188,202,192,0.4)', color: '#3d4a42' }}>
                         📦 Delivered successfully
+                      </div>
+                    ) : user ? (
+                      <div className="w-full py-2.5 px-4 rounded-full text-xs font-semibold text-center"
+                        style={{ background: 'rgba(234,237,255,0.6)', border: '1px solid rgba(188,202,192,0.4)', color: '#6d7a72' }}>
+                        {user.role === 'donor' ? '🎁 You\'re a donor — NGOs will claim your food' : '🚴 NGOs claim, volunteers deliver'}
                       </div>
                     ) : (
                       <Link to="/login"

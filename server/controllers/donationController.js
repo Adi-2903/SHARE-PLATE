@@ -142,6 +142,8 @@ export const markDelivered = async (req, res) => {
   try {
     const donation = await Donation.findById(req.params.id);
     if (!donation) return res.status(404).json({ error: 'Not found' });
+    if (!['claimed', 'in_transit'].includes(donation.status))
+      return res.status(400).json({ error: 'Donation must be claimed or in_transit to mark as delivered' });
 
     donation.status      = 'delivered';
     donation.deliveredAt = new Date();
