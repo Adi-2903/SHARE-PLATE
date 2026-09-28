@@ -173,11 +173,21 @@ export default function DonatePage() {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [history, setHistory] = useState([])
-  const [form, setForm] = useState({ foodName: '', quantity: '', foodType: 'Vegetarian', expiryTime: '', address: '', city: '', phone: '', notes: '' })
+  const [form, setForm] = useState({
+    foodName: '', quantity: '', foodType: 'Vegetarian', expiryTime: '',
+    address: '', city: user?.city || '', phone: user?.phone || '', notes: ''
+  })
 
   useEffect(() => {
     api.get('/donations/my').then(({ data }) => setHistory(data)).catch(() => {})
-  }, [])
+    if (user) {
+      setForm(f => ({
+        ...f,
+        city: f.city || user.city || '',
+        phone: f.phone || user.phone || '',
+      }))
+    }
+  }, [user])
 
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.value })
 

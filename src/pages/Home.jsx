@@ -108,8 +108,15 @@ export default function Home() {
   const [apiStats, setApiStats] = useState(null)
   const [activeFilter, setActiveFilter] = useState('All Dispatches')
 
+  const [realDonations, setRealDonations] = useState([])
+
   useEffect(() => {
     api.get('/donations/stats').then(({ data }) => setApiStats(data)).catch(() => {})
+    api.get('/donations').then(({ data }) => {
+      if (Array.isArray(data) && data.length > 0) {
+        setRealDonations(data.filter(d => d.status === 'available'))
+      }
+    }).catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -370,68 +377,98 @@ export default function Home() {
         </div>
 
         {/* 4-col card grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {LIVE_CARDS.map((card, i) => (
-            <div key={i}
-              className={`rounded-2xl p-5 flex flex-col justify-between border relative overflow-hidden transition-all duration-300 hover:-translate-y-1 ${card.borderCls}`}
-              style={{
-                background: 'rgba(255,255,255,0.78)',
-                backdropFilter: 'blur(18px)',
-                boxShadow: '0 4px 20px -4px rgba(0,105,72,0.06)',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 36px -6px rgba(0,105,72,0.12)'; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 20px -4px rgba(0,105,72,0.06)'; }}>
-              {/* Ambient glow circle */}
-              <div className={`absolute -right-12 -top-12 w-28 h-28 rounded-full blur-xl pointer-events-none ${card.glowCls}`} />
+        {(() => {
+          const cardsToDisplay = realDonations.length > 0 ? realDonations.slice(0, 4).map(d => {
+            const diff = new Date(d.expiryTime) - new Date()
+            const hrs = diff / 3_600_000
+            const mins = Math.max(0, Math.floor((diff % 3_600_000) / 60_000))
+            const isUrgent = d.priority === 'urgent' || hrs < 4
+            const isMod = hrs >= 4 && hrs < 8
 
-              <div>
-                {/* Badge + timer */}
-                <div className="flex items-center justify-between mb-4">
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${card.badgeCls}`}>
-                    {card.urgency === 'urgent' && (
-                      <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#ba1a1a' }} />
-                    )}
-                    {card.urgencyLabel}
-                  </span>
-                  <span className={`text-xs font-bold flex items-center gap-1 ${card.timerCls}`}>
-                    <span className="material-symbols-outlined text-sm">timer</span>
-                    ⏱ {card.timer}
-                  </span>
+            return {
+              id: d._id,
+              urgency: isUrgent ? 'urgent' : isMod ? 'moderate' : 'safe',
+              urgencyLabel: isUrgent ? 'URGENT' : isMod ? 'MODERATE' : 'SAFE',
+              timer: hrs > 0 ? `${Math.floor(hrs)}h ${mins}m left` : 'Expired',
+              title: d.foodName,
+              qty: `${d.quantity} servings ready`,
+              donor: d.donorName || 'Commercial Kitchen',
+              location: `${d.city || 'Local'} • ${d.foodType || 'Vegetarian'}`,
+              note: d.notes || 'HACCP Temperature Certified',
+              noteIcon: isUrgent ? 'crisis_alert' : 'inventory_2',
+              borderCls: isUrgent ? 'border-red-300/60' : isMod ? 'border-amber-300/50' : 'border-emerald-300/40',
+              timerCls: isUrgent ? 'text-red-600' : isMod ? 'text-amber-600' : 'text-emerald-600',
+              badgeCls: isUrgent ? 'bg-red-100 text-red-700' : isMod ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700',
+              btnCls: isUrgent ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-emerald-700 hover:bg-emerald-800 text-white',
+              glowCls: isUrgent ? 'bg-red-200/30' : isMod ? 'bg-amber-200/20' : 'bg-emerald-200/20',
+            }
+          }) : LIVE_CARDS
+
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {cardsToDisplay.map((card, i) => (
+                <div key={card.id || i}
+                  className={`rounded-2xl p-5 flex flex-col justify-between border relative overflow-hidden transition-all duration-300 hover:-translate-y-1 ${card.borderCls}`}
+                  style={{
+                    background: 'rgba(255,255,255,0.78)',
+                    backdropFilter: 'blur(18px)',
+                    boxShadow: '0 4px 20px -4px rgba(0,105,72,0.06)',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 18px 36px -6px rgba(0,105,72,0.12)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 20px -4px rgba(0,105,72,0.06)'; }}>
+                  {/* Ambient glow circle */}
+                  <div className={`absolute -right-12 -top-12 w-28 h-28 rounded-full blur-xl pointer-events-none ${card.glowCls}`} />
+
+                  <div>
+                    {/* Badge + timer */}
+                    <div className="flex items-center justify-between mb-4">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${card.badgeCls}`}>
+                        {card.urgency === 'urgent' && (
+                          <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#ba1a1a' }} />
+                        )}
+                        {card.urgencyLabel}
+                      </span>
+                      <span className={`text-xs font-bold flex items-center gap-1 ${card.timerCls}`}>
+                        <span className="material-symbols-outlined text-sm">timer</span>
+                        ⏱ {card.timer}
+                      </span>
+                    </div>
+
+                    {/* Title & qty */}
+                    <h3 className="text-lg font-bold text-[#131b2e] mb-1" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{card.title}</h3>
+                    <p className="text-sm font-semibold mb-4" style={{ color: '#006948' }}>{card.qty}</p>
+
+                    {/* Metadata */}
+                    <div className="space-y-2 py-3 border-y text-sm text-[#3d4a42]"
+                      style={{ borderColor: 'rgba(188,202,192,0.3)' }}>
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-base text-[#6d7a72]">storefront</span>
+                        <span className="truncate font-medium text-[#131b2e]">{card.donor}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-base text-[#6d7a72]">pin_drop</span>
+                        <span>{card.location}</span>
+                      </div>
+                      <div className={`flex items-center gap-2 text-xs font-semibold ${card.timerCls}`}>
+                        <span className="material-symbols-outlined text-base">{card.noteIcon}</span>
+                        <span className="truncate">{card.note}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CTA Button */}
+                  <div className="mt-5">
+                    <Link to="/donations"
+                      className={`w-full py-3 px-4 rounded-full text-sm font-semibold shadow-sm hover:shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 ${card.btnCls}`}>
+                      <span>Claim Donation</span>
+                      <span className="material-symbols-outlined text-base">volunteer_activism</span>
+                    </Link>
+                  </div>
                 </div>
-
-                {/* Title & qty */}
-                <h3 className="text-lg font-bold text-[#131b2e] mb-1" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{card.title}</h3>
-                <p className="text-sm font-semibold mb-4" style={{ color: '#006948' }}>{card.qty}</p>
-
-                {/* Metadata */}
-                <div className="space-y-2 py-3 border-y text-sm text-[#3d4a42]"
-                  style={{ borderColor: 'rgba(188,202,192,0.3)' }}>
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-base text-[#6d7a72]">storefront</span>
-                    <span className="truncate font-medium text-[#131b2e]">{card.donor}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-base text-[#6d7a72]">pin_drop</span>
-                    <span dangerouslySetInnerHTML={{ __html: card.location.replace('•', '• <strong>').replace(' away', ' away</strong>') }} />
-                  </div>
-                  <div className={`flex items-center gap-2 text-xs font-semibold ${card.timerCls}`}>
-                    <span className="material-symbols-outlined text-base">{card.noteIcon}</span>
-                    <span>{card.note}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* CTA Button */}
-              <div className="mt-5">
-                <Link to="/donations"
-                  className={`w-full py-3 px-4 rounded-full text-sm font-semibold shadow-sm hover:shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 ${card.btnCls}`}>
-                  <span>Claim Donation</span>
-                  <span className="material-symbols-outlined text-base">volunteer_activism</span>
-                </Link>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )
+        })()}
       </section>
 
       {/* ══ PARTNER TRUST STRIP ══════════════════════════ */}

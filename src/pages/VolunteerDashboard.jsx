@@ -294,10 +294,11 @@ export default function VolunteerDashboard() {
                         <div className="text-sm font-bold text-[#131b2e]">{d.foodName}</div>
                         <div className="text-xs text-[#3d4a42]">{d.quantity} servings • {d.city}</div>
                       </div>
-                      <Link to="/donations" className="text-xs font-bold px-4 py-1.5 rounded-full text-white"
-                        style={{ background: '#006948' }}>
-                        Pickup
-                      </Link>
+                      <button onClick={() => handlePickup(d._id)}
+                        className="text-xs font-bold px-4 py-1.5 rounded-full text-white transition-all hover:scale-105"
+                        style={{ background: 'linear-gradient(135deg, #006948, #00855d)' }}>
+                        Accept Pickup
+                      </button>
                     </div>
                   ))}
                 </div>

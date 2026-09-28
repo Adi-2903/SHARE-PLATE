@@ -16,9 +16,9 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Hide top Navbar on portal/dashboard routes that have their own sidebar
-  const isDashboardRoute = ['/donate', '/ngo', '/volunteer', '/admin', '/donations'].includes(location.pathname)
-  if (isDashboardRoute) return null
+  // Hide top Navbar on portal/dashboard and auth routes that have their own sidebar/layout
+  const isDashboardOrAuthRoute = ['/donate', '/ngo', '/volunteer', '/admin', '/donations', '/login', '/register'].includes(location.pathname)
+  if (isDashboardOrAuthRoute) return null
 
   const handleLogout = () => { logout(); navigate('/') }
 
@@ -33,28 +33,61 @@ export default function Navbar() {
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      scrolled ? 'bg-[#070d0a]/95 backdrop-blur-xl border-b border-emerald-900/30 shadow-2xl py-3' : 'py-4'
-    }`}>
+      scrolled
+        ? 'py-3'
+        : 'py-4'
+    }`}
+    style={{
+      background: scrolled ? 'rgba(255, 255, 255, 0.92)' : 'rgba(255, 255, 255, 0.82)',
+      backdropFilter: 'blur(20px) saturate(180%)',
+      borderBottom: '1px solid rgba(188, 202, 192, 0.35)',
+      boxShadow: scrolled ? '0 10px 30px -6px rgba(0, 105, 72, 0.1)' : '0 4px 20px -4px rgba(0, 105, 72, 0.05)',
+      fontFamily: "'Inter', sans-serif",
+    }}>
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 font-outfit font-black text-xl">
-          <Utensils className="text-emerald-400" size={24} />
-          <span>Share<span className="text-emerald-400">Plate</span></span>
+        <Link to="/" className="flex items-center gap-2.5 font-extrabold text-xl tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+          <div className="w-9 h-9 rounded-full flex items-center justify-center text-white shadow-sm" style={{ background: 'linear-gradient(135deg, #006948, #00855d)' }}>
+            <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>eco</span>
+          </div>
+          <span className="text-[#006948] text-xl font-black">Share<span className="text-[#00855d]">Plate</span></span>
         </Link>
 
         {/* Desktop Links */}
-        <ul className="hidden lg:flex items-center gap-1">
-          <li><Link to="/donations" className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive('/donations') ? 'text-emerald-400' : 'text-gray-400 hover:text-white hover:bg-emerald-900/20'}`}>Donations</Link></li>
+        <ul className="hidden lg:flex items-center gap-2">
+          <li>
+            <Link to="/donations"
+              className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+                isActive('/donations')
+                  ? 'text-[#006948] bg-[#006948]/10 font-bold'
+                  : 'text-[#3d4a42] hover:text-[#006948] hover:bg-[#006948]/8'
+              }`}>
+              Live Rescue Board
+            </Link>
+          </li>
           {user && roleLinks[user.role] && (
             <li>
               <Link to={roleLinks[user.role].to}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive(roleLinks[user.role].to) ? 'text-emerald-400' : 'text-gray-400 hover:text-white hover:bg-emerald-900/20'}`}>
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+                  isActive(roleLinks[user.role].to)
+                    ? 'text-[#006948] bg-[#006948]/10 font-bold'
+                    : 'text-[#3d4a42] hover:text-[#006948] hover:bg-[#006948]/8'
+                }`}>
                 {roleLinks[user.role].label}
               </Link>
             </li>
           )}
           {user?.role === 'admin' && (
-            <li><Link to="/admin" className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive('/admin') ? 'text-emerald-400' : 'text-gray-400 hover:text-white hover:bg-emerald-900/20'}`}>Admin</Link></li>
+            <li>
+              <Link to="/admin"
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+                  isActive('/admin')
+                    ? 'text-[#006948] bg-[#006948]/10 font-bold'
+                    : 'text-[#3d4a42] hover:text-[#006948] hover:bg-[#006948]/8'
+                }`}>
+                Admin Panel
+              </Link>
+            </li>
           )}
         </ul>
 
@@ -62,44 +95,59 @@ export default function Navbar() {
         <div className="hidden lg:flex items-center gap-3">
           {user ? (
             <>
-              <span className="text-sm text-gray-400 font-outfit">
-                👤 {user.name?.split(' ')[0]} <span className="text-emerald-400 text-xs">({user.role})</span>
-              </span>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold"
+                style={{ background: 'rgba(242,243,255,0.8)', borderColor: 'rgba(188,202,192,0.4)', color: '#131b2e' }}>
+                <span className="w-2 h-2 rounded-full" style={{ background: '#006948' }} />
+                <span>{user.firstName || user.name?.split(' ')[0]}</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] text-white font-bold capitalize" style={{ background: '#006948' }}>
+                  {user.role}
+                </span>
+              </div>
               <button onClick={handleLogout}
-                className="px-4 py-2 text-sm font-outfit font-semibold text-gray-400 border border-emerald-900/40 rounded-xl hover:bg-red-900/20 hover:text-red-400 hover:border-red-900/40 transition-all">
-                Logout
+                className="px-4 py-2 text-xs font-bold text-[#3d4a42] border rounded-full hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all"
+                style={{ borderColor: 'rgba(188,202,192,0.5)' }}>
+                Sign Out
               </button>
             </>
           ) : (
             <>
-              <Link to="/login" className="px-4 py-2 text-sm font-outfit font-semibold text-emerald-400 border border-emerald-800/60 rounded-xl hover:bg-emerald-900/20 transition-all">Login</Link>
-              <Link to="/register" className="px-4 py-2 text-sm font-outfit font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-900/40">Join Now</Link>
+              <Link to="/login"
+                className="px-5 py-2.5 text-xs font-bold text-[#006948] border rounded-full hover:bg-[#006948]/10 transition-all"
+                style={{ borderColor: 'rgba(0,105,72,0.3)' }}>
+                Sign In
+              </Link>
+              <Link to="/login"
+                className="px-5 py-2.5 text-xs font-bold text-white rounded-full transition-all hover:scale-[1.02] active:scale-[0.98]"
+                style={{ background: 'linear-gradient(135deg, #006948, #00855d)', boxShadow: '0 4px 16px -2px rgba(0,105,72,0.3)' }}>
+                Join Now
+              </Link>
             </>
           )}
         </div>
 
         {/* Hamburger */}
-        <button className="lg:hidden text-gray-400" onClick={() => setOpen(!open)}>
-          {open ? <X size={24} /> : <Menu size={24} />}
+        <button className="lg:hidden text-[#131b2e] p-2 rounded-full hover:bg-gray-100" onClick={() => setOpen(!open)}>
+          {open ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
 
       {/* Mobile Menu */}
       {open && (
-        <div className="lg:hidden bg-[#0d1a14] border-t border-emerald-900/30 px-6 py-4 flex flex-col gap-3">
-          <Link to="/donations" className="text-sm text-gray-300 hover:text-emerald-400 py-2" onClick={() => setOpen(false)}>Donations</Link>
+        <div className="lg:hidden border-t px-6 py-4 flex flex-col gap-3 mt-3 animate-fadeIn"
+          style={{ background: 'rgba(255,255,255,0.98)', borderColor: 'rgba(188,202,192,0.3)' }}>
+          <Link to="/donations" className="text-sm font-semibold text-[#131b2e] hover:text-[#006948] py-2" onClick={() => setOpen(false)}>Live Rescue Board</Link>
           {user && roleLinks[user.role] && (
-            <Link to={roleLinks[user.role].to} className="text-sm text-gray-300 hover:text-emerald-400 py-2" onClick={() => setOpen(false)}>
+            <Link to={roleLinks[user.role].to} className="text-sm font-semibold text-[#131b2e] hover:text-[#006948] py-2" onClick={() => setOpen(false)}>
               {roleLinks[user.role].label}
             </Link>
           )}
           {!user ? (
-            <>
-              <Link to="/login" className="text-sm text-emerald-400 py-2" onClick={() => setOpen(false)}>Login</Link>
-              <Link to="/register" className="text-sm bg-emerald-600 text-white px-4 py-2 rounded-xl text-center" onClick={() => setOpen(false)}>Join Now</Link>
-            </>
+            <div className="flex flex-col gap-2 pt-2 border-t" style={{ borderColor: 'rgba(188,202,192,0.3)' }}>
+              <Link to="/login" className="text-sm font-bold text-[#006948] py-2 text-center rounded-full border" style={{ borderColor: 'rgba(0,105,72,0.3)' }} onClick={() => setOpen(false)}>Sign In</Link>
+              <Link to="/login" className="text-sm font-bold bg-[#006948] text-white px-4 py-2.5 rounded-full text-center shadow-md" onClick={() => setOpen(false)}>Join Now</Link>
+            </div>
           ) : (
-            <button onClick={() => { handleLogout(); setOpen(false) }} className="text-sm text-red-400 py-2 text-left">Logout</button>
+            <button onClick={() => { handleLogout(); setOpen(false) }} className="text-sm font-bold text-red-600 py-2 text-left">Sign Out</button>
           )}
         </div>
       )}

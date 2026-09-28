@@ -111,11 +111,11 @@ export default function Login() {
 
         {/* Top content */}
         <div className="relative z-10 space-y-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-bold"
+          <Link to="/" className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-bold text-white hover:bg-white/20 transition-all"
             style={{ background: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.2)' }}>
             <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#85f8c4' }} />
             SharePlate • Food Rescue Network
-          </div>
+          </Link>
 
           <div>
             <h1 className="text-5xl font-bold leading-none mb-3 tracking-tight" style={S}>
@@ -197,6 +197,21 @@ export default function Login() {
         </div>
 
         <div className="w-full max-w-xl mx-auto space-y-6">
+          {/* Top Brand & Navigation Header */}
+          <div className="flex items-center justify-between pb-2">
+            <Link to="/" className="flex items-center gap-2 font-bold text-[#006948]" style={S}>
+              <div className="w-9 h-9 rounded-full flex items-center justify-center text-white shadow-sm" style={{ background: 'linear-gradient(135deg, #006948, #00855d)' }}>
+                <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>eco</span>
+              </div>
+              <span className="text-xl tracking-tight font-black">Share<span className="text-[#00855d]">Plate</span></span>
+            </Link>
+            <Link to="/" className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-[#3d4a42] hover:text-[#006948] transition-all border"
+              style={{ background: 'rgba(255,255,255,0.8)', borderColor: 'rgba(188,202,192,0.4)' }}>
+              <span className="material-symbols-outlined text-sm">arrow_back</span>
+              Back to Home
+            </Link>
+          </div>
+
           {/* Tab toggle */}
           <div className="flex p-1.5 rounded-full max-w-md mx-auto border"
             style={{ background: '#e2e7ff', borderColor: 'rgba(188,202,192,0.3)' }}>

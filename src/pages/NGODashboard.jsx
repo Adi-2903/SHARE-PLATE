@@ -163,6 +163,14 @@ export default function NGODashboard() {
     } catch (err) { toast.error(err.response?.data?.error || 'Claim failed') }
   }
 
+  const handleConfirmDelivery = async (id) => {
+    try {
+      await api.patch(`/donations/${id}/deliver`)
+      toast.success('📦 Delivery receipt confirmed! Thank you.')
+      fetchData()
+    } catch (err) { toast.error(err.response?.data?.error || 'Failed to confirm') }
+  }
+
   const available = donations.filter(d => d.status === 'available')
   // "My Claims" = donations this NGO specifically claimed
   const claimed = donations.filter(d => {
@@ -287,9 +295,18 @@ export default function NGODashboard() {
                           Claim Donation →
                         </button>
                       ) : (
-                        <div className="text-center text-xs font-semibold py-2 rounded-full"
-                          style={{ background: 'rgba(108,248,187,0.2)', color: '#00714d', border: '1px solid rgba(0,113,77,0.2)' }}>
-                          ✅ Claimed · {d.status === 'delivered' ? 'Delivered' : d.status === 'in_transit' ? '🚴 In Transit' : 'Awaiting volunteer'}
+                        <div className="space-y-2">
+                          <div className="text-center text-xs font-semibold py-2 rounded-full"
+                            style={{ background: 'rgba(108,248,187,0.2)', color: '#00714d', border: '1px solid rgba(0,113,77,0.2)' }}>
+                            ✅ Claimed · {d.status === 'delivered' ? 'Delivered' : d.status === 'in_transit' ? '🚴 In Transit' : 'Awaiting volunteer'}
+                          </div>
+                          {d.status !== 'delivered' && (
+                            <button onClick={() => handleConfirmDelivery(d._id)}
+                              className="w-full py-2 rounded-full text-xs font-bold text-white transition-all hover:scale-[1.01]"
+                              style={{ background: 'linear-gradient(135deg, #006948, #00855d)' }}>
+                              Mark Received & Delivered ✅
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
