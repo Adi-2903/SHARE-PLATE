@@ -1,16 +1,7 @@
-<div align="center">
 
-```
-  ██████  ██░ ██  ▄▄▄       ██▀███  ▓█████  ██▓███   ██▓    ▄▄▄     ▄▄▄█████▓▓█████ 
-▒██    ▒ ▓██░ ██▒▒████▄    ▓██ ▒ ██▒▓█   ▀ ▓██░  ██▒▓██▒   ▒████▄   ▓  ██▒ ▓▒▓█   ▀ 
-░ ▓██▄   ▒██▀▀██░▒██  ▀█▄  ▓██ ░▄█ ▒▒███   ▓██░ ██▓▒▒██░   ▒██  ▀█▄ ▒ ▓██░ ▒░▒███   
-  ▒   ██▒░▓█ ░██ ░██▄▄▄▄██ ▒██▀▀█▄  ▒▓█  ▄ ▒██▄█▓▒ ▒▒██░   ░██▄▄▄▄██░ ▓██▓ ░ ▒▓█  ▄ 
-▒██████▒▒░▓█▒░██▓ ▓█   ▓██▒░██▓ ▒██▒░▒████▒▒██▒ ░  ░░██████▒▓█   ▓██▒ ▒██▒ ░ ░▒████▒
-▒ ▒▓▒ ▒ ░ ▒ ░░▒░▒ ▒▒   ▓▒█░░ ▒▓ ░▒▓░░░ ▒░ ░▒▓▒░ ░  ░░ ▒░▓  ░▒▒   ▓▒█░ ▒ ░░   ░░ ▒░ ░
-░ ░▒  ░ ░ ▒ ░▒░ ░  ▒   ▒▒ ░  ░▒ ░ ▒░ ░ ░  ░░▒ ░     ░ ░ ▒  ░ ▒   ▒▒ ░   ░     ░ ░  ░
-░  ░  ░   ░  ░░ ░  ░   ▒     ░░   ░    ░   ░░         ░ ░    ░   ▒    ░         ░   
-      ░   ░  ░  ░      ░  ░   ░        ░  ░               ░  ░     ░  ░         ░  ░
-```
+<img src="https://capsule-render.vercel.app/api?type=waving&color=006948&height=200&section=header&text=SharePlate&fontSize=80&fontColor=ffffff&animation=fadeIn&fontAlignY=38&desc=🍽️%20Smart%20Food%20Rescue%20OS&descAlignY=60&descSize=22" width="100%"/>
+
+<div align="center">
 
 # 🍽️ SharePlate — Food Rescue OS
 
@@ -33,6 +24,7 @@
 ![Meals Rescued](https://img.shields.io/badge/🥗_Meals_Rescued-12%2C480%2B-brightgreen?style=flat-square) ![CO2 Saved](https://img.shields.io/badge/🌍_CO₂_Saved-48.7_Tons-blue?style=flat-square) ![NGO Partners](https://img.shields.io/badge/🏢_NGO_Partners-1%2C400%2B-orange?style=flat-square) ![Urgency System](https://img.shields.io/badge/⚡_Real--time_Urgency-Active-red?style=flat-square)
 
 </div>
+
 
 ---
 
