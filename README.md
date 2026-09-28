@@ -1,29 +1,58 @@
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=006948&height=200&section=header&text=SharePlate&fontSize=80&fontColor=ffffff&animation=fadeIn&fontAlignY=38&desc=🍽️%20Smart%20Food%20Rescue%20OS&descAlignY=60&descSize=22" width="100%"/>
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=venom&color=0:059669,50:10B981,100:34D399&height=280&section=header&text=SharePlate&fontSize=90&fontColor=ffffff&animation=twinkling&fontAlignY=42&desc=Smart%20Near-Expiry%20Food%20Redistribution%20Platform%20%7C%20Zero%20Waste&descAlignY=66&descSize=20&descColor=A7F3D0" width="100%"/>
+</p>
 
-<div align="center">
+<p align="center">
+  <a href="https://share-platel.vercel.app/">
+    <img src="https://readme-typing-svg.demolab.com?font=Plus+Jakarta+Sans&weight=700&size=25&pause=1000&color=10B981&center=true&vCenter=true&width=850&height=50&lines=Turning+Food+Waste+Into+Community+Impact+🌱;Real-Time+Near-Expiry+Rescue+Radar+🔴+LIVE;12%2C480%2B+Meals+Rescued+%7C+48.7+Tons+CO%E2%82%82+Saved+🌍;Full-Stack+MERN+App+%7C+React+19+%7C+MongoDB+Atlas+🚀" alt="Typing SVG" />
+  </a>
+</p>
 
-# 🍽️ SharePlate — Food Rescue OS
+<p align="center">
+  <a href="https://share-platel.vercel.app/"><img src="https://img.shields.io/badge/🌐_LIVE_DEMO-share--platel.vercel.app-006948?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo"/></a>
+  &nbsp;
+  <a href="#-live-demo--demo-credentials"><img src="https://img.shields.io/badge/🔑_ONE--CLICK_DEMO-4_ROLES-10B981?style=for-the-badge&logo=key&logoColor=white" alt="Demo Creds"/></a>
+  &nbsp;
+  <a href="#-api-reference"><img src="https://img.shields.io/badge/⚡_REST_API-24_ENDPOINTS-0EA5E9?style=for-the-badge&logo=postman&logoColor=white" alt="API Specs"/></a>
+</p>
 
-### *Smart Near-Expiry Food Redistribution Platform*
+<p align="center">
+  <img src="https://img.shields.io/badge/React-19.0-61DAFB?style=flat-square&logo=react&logoColor=black" />
+  <img src="https://img.shields.io/badge/Vite-6.0-646CFF?style=flat-square&logo=vite&logoColor=white" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" />
+  <img src="https://img.shields.io/badge/Node.js-v20-339933?style=flat-square&logo=nodedotjs&logoColor=white" />
+  <img src="https://img.shields.io/badge/Express-4.21-000000?style=flat-square&logo=express&logoColor=white" />
+  <img src="https://img.shields.io/badge/MongoDB_Atlas-v8.0-47A248?style=flat-square&logo=mongodb&logoColor=white" />
+  <img src="https://img.shields.io/badge/JWT-Auth-000000?style=flat-square&logo=jsonwebtokens&logoColor=white" />
+  <img src="https://img.shields.io/badge/Vercel-Hosted-000000?style=flat-square&logo=vercel&logoColor=white" />
+  <img src="https://img.shields.io/badge/Status-Production_Ready-success?style=flat-square&logo=checkmarx&logoColor=white" />
+</p>
 
 <br/>
 
-[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-share--platel.vercel.app-006948?style=for-the-badge&logoColor=white)](https://share-platel.vercel.app/)
-[![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
-[![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)](https://mongodb.com/)
-[![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
+<table align="center" width="100%">
+  <tr>
+    <td align="center" width="25%" style="background: #064e3b; padding: 16px; border-radius: 10px;">
+      <h2 style="color: #34d399; margin: 0;">🥗 12,480+</h2>
+      <b style="color: #a7f3d0; font-size: 12px;">MEALS RESCUED</b>
+    </td>
+    <td align="center" width="25%" style="background: #064e3b; padding: 16px; border-radius: 10px;">
+      <h2 style="color: #6ee7b7; margin: 0;">🌍 48.7 Tons</h2>
+      <b style="color: #a7f3d0; font-size: 12px;">CO₂ PREVENTED</b>
+    </td>
+    <td align="center" width="25%" style="background: #064e3b; padding: 16px; border-radius: 10px;">
+      <h2 style="color: #fde047; margin: 0;">🏢 1,400+</h2>
+      <b style="color: #fef08a; font-size: 12px;">NGO PARTNERS</b>
+    </td>
+    <td align="center" width="25%" style="background: #064e3b; padding: 16px; border-radius: 10px;">
+      <h2 style="color: #f87171; margin: 0;">⚡ Real-Time</h2>
+      <b style="color: #fca5a5; font-size: 12px;">URGENCY RADAR</b>
+    </td>
+  </tr>
+</table>
 
 <br/>
-
-> **"Every 1 kg of food rescued = 2.5 kg CO₂ saved. Every meal matters."**
-
-<br/>
-
-![Meals Rescued](https://img.shields.io/badge/🥗_Meals_Rescued-12%2C480%2B-brightgreen?style=flat-square) ![CO2 Saved](https://img.shields.io/badge/🌍_CO₂_Saved-48.7_Tons-blue?style=flat-square) ![NGO Partners](https://img.shields.io/badge/🏢_NGO_Partners-1%2C400%2B-orange?style=flat-square) ![Urgency System](https://img.shields.io/badge/⚡_Real--time_Urgency-Active-red?style=flat-square)
-
-</div>
 
 
 ---
