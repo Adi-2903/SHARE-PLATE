@@ -33,7 +33,7 @@ function InputField({ label, icon, type = 'text', value, onChange, placeholder, 
         <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6d7a72] text-lg">{icon}</span>
         <input
           type={type} value={value} onChange={onChange} placeholder={placeholder} required={required}
-          className="w-full pl-11 pr-4 py-3 rounded-full text-sm text-[#131b2e] placeholder-[#6d7a72] outline-none transition-all"
+          className="w-full pl-11 pr-4 py-3 rounded-full text-sm text-[#131b2e] placeholder-[#94a3b8] placeholder:font-normal outline-none transition-all"
           style={{ background: '#ffffff', border: '1px solid rgba(188,202,192,0.6)', focusRing: '2px solid #006948' }}
           onFocus={e => { e.target.style.borderColor = '#006948'; e.target.style.boxShadow = '0 0 0 3px rgba(0,105,72,0.12)' }}
           onBlur={e => { e.target.style.borderColor = 'rgba(188,202,192,0.6)'; e.target.style.boxShadow = 'none' }}
@@ -312,8 +312,8 @@ export default function Login() {
                 )}
                 <InputField label="Email Address" icon="mail" type="email" value={regForm.email} onChange={e => setRegForm({...regForm,email:e.target.value})} placeholder="you@example.com" required />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <InputField label="Phone" icon="phone" value={regForm.phone} onChange={e => setRegForm({...regForm,phone:e.target.value})} placeholder="9876543210" required />
-                  <InputField label="City" icon="location_city" value={regForm.city} onChange={e => setRegForm({...regForm,city:e.target.value})} placeholder="Pune" required />
+                  <InputField label="Phone" icon="phone" value={regForm.phone} onChange={e => setRegForm({...regForm,phone:e.target.value})} placeholder="+91 98765 43210" required />
+                  <InputField label="City" icon="location_city" value={regForm.city} onChange={e => setRegForm({...regForm,city:e.target.value})} placeholder="e.g. Pune, Mumbai" required />
                 </div>
                 <InputField label="Password" icon="lock" type="password" value={regForm.password} onChange={e => setRegForm({...regForm,password:e.target.value})} placeholder="Min 6 characters" required />
                 <button type="submit" disabled={loading}

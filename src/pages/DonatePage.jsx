@@ -176,7 +176,7 @@ export default function DonatePage() {
   const [history, setHistory] = useState([])
   const [form, setForm] = useState({
     foodName: '', quantity: '', foodType: 'Vegetarian', expiryTime: '',
-    address: '', city: user?.city || '', phone: user?.phone || '', notes: ''
+    address: '', city: '', phone: '', notes: ''
   })
 
   useEffect(() => {
@@ -184,8 +184,8 @@ export default function DonatePage() {
     if (user) {
       setForm(f => ({
         ...f,
-        city: f.city || user.city || '',
-        phone: f.phone || user.phone || '',
+        city: f.city || (user.city && !['Pune', 'Mumbai'].includes(user.city) ? user.city : ''),
+        phone: f.phone || (user.phone && !user.phone.startsWith('9000000') ? user.phone : ''),
       }))
     }
   }, [user])
@@ -234,7 +234,7 @@ export default function DonatePage() {
     } finally { setLoading(false) }
   }
 
-  const inputCls = "w-full px-4 py-3 rounded-xl text-sm text-[#131b2e] outline-none transition-all"
+  const inputCls = "w-full px-4 py-3 rounded-xl text-sm text-[#131b2e] placeholder:text-[#94a3b8] placeholder:font-normal outline-none transition-all"
   const inputStyle = { background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(188,202,192,0.5)' }
 
   return (
@@ -355,7 +355,7 @@ export default function DonatePage() {
                         <label className="block text-xs font-semibold text-[#131b2e] mb-1.5">City *</label>
                         <div className="relative">
                           <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6d7a72] text-lg">location_city</span>
-                          <input value={form.city} onChange={set('city')} placeholder="Mumbai, Pune…" required
+                          <input value={form.city} onChange={set('city')} placeholder="e.g. Pune, Mumbai" required
                             className={`${inputCls} pl-11`} style={inputStyle}
                             onFocus={e => e.target.style.borderColor = '#006948'} onBlur={e => e.target.style.borderColor = 'rgba(188,202,192,0.5)'} />
                         </div>
@@ -364,7 +364,7 @@ export default function DonatePage() {
                         <label className="block text-xs font-semibold text-[#131b2e] mb-1.5">Contact Phone *</label>
                         <div className="relative">
                           <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6d7a72] text-lg">call</span>
-                          <input value={form.phone} onChange={set('phone')} placeholder="9876543210" required
+                          <input value={form.phone} onChange={set('phone')} placeholder="+91 98765 43210" required
                             className={`${inputCls} pl-11`} style={inputStyle}
                             onFocus={e => e.target.style.borderColor = '#006948'} onBlur={e => e.target.style.borderColor = 'rgba(188,202,192,0.5)'} />
                         </div>
