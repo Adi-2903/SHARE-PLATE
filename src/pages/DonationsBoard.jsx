@@ -4,6 +4,7 @@ import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import { getErrorMessage } from '../utils/errorHandler'
+import RescueMap from '../components/RescueMap'
 
 const S = { fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }
 
@@ -182,6 +183,7 @@ export default function DonationsBoard() {
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
+  const [viewMode, setViewMode] = useState('grid')
 
   const fetchDonations = () => {
     setLoading(true)
@@ -239,18 +241,32 @@ export default function DonationsBoard() {
             <p className="text-[#3d4a42] mt-1 text-sm">Real-time surplus batches posted by certified commercial kitchens.</p>
           </div>
 
-          {/* Search */}
-          <div className="flex gap-3">
+          {/* Controls: Search, View Mode Toggle & Donate */}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* View Mode Switcher */}
+            <div className="inline-flex items-center p-1 rounded-full border border-gray-200 bg-white shadow-sm">
+              <button onClick={() => setViewMode('grid')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${viewMode === 'grid' ? 'bg-[#006948] text-white shadow-sm' : 'text-[#6d7a72] hover:text-[#131b2e]'}`}>
+                <span className="material-symbols-outlined text-sm">grid_view</span>
+                Grid
+              </button>
+              <button onClick={() => setViewMode('map')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${viewMode === 'map' ? 'bg-[#006948] text-white shadow-sm' : 'text-[#6d7a72] hover:text-[#131b2e]'}`}>
+                <span className="material-symbols-outlined text-sm">map</span>
+                Live Map Radar 🗺️
+              </button>
+            </div>
+
             <div className="relative">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#6d7a72] text-lg">search</span>
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search food, donor, city…"
-                className="pl-10 pr-4 py-2.5 rounded-full text-sm text-[#131b2e] outline-none w-full sm:w-60"
-                style={{ background: 'rgba(255,255,255,0.8)', border: '1px solid rgba(188,202,192,0.5)' }}
+                className="pl-10 pr-4 py-2.5 rounded-full text-sm text-[#131b2e] outline-none w-full sm:w-52"
+                style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(188,202,192,0.5)' }}
                 onFocus={e => { e.target.style.borderColor = '#006948'; e.target.style.boxShadow = '0 0 0 3px rgba(0,105,72,0.1)' }}
                 onBlur={e => { e.target.style.borderColor = 'rgba(188,202,192,0.5)'; e.target.style.boxShadow = 'none' }} />
             </div>
             {user?.role === 'donor' && (
-              <Link to="/donate" className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold text-white"
+              <Link to="/donate" className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-bold text-white shrink-0"
                 style={{ background: 'linear-gradient(135deg, #006948, #00855d)' }}>
                 <span className="material-symbols-outlined text-base">add_circle</span>
                 Donate Food
@@ -277,13 +293,21 @@ export default function DonationsBoard() {
           ))}
         </div>
 
-        {/* Grid */}
+        {/* Content View: Grid or Interactive Live Rescue Map */}
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <div className="text-center">
               <span className="material-symbols-outlined text-5xl animate-spin" style={{ color: '#006948' }}>refresh</span>
               <p className="text-sm text-[#3d4a42] mt-3">Loading live rescues…</p>
             </div>
+          </div>
+        ) : viewMode === 'map' ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between px-2">
+              <span className="text-xs font-bold text-[#006948]">🗺️ Interactive Live Food Rescue Radar Map</span>
+              <span className="text-xs text-[#64748b]">Click any pin to inspect food details & route</span>
+            </div>
+            <RescueMap donations={filtered} onClaim={handleClaim} user={user} height="580px" />
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-24">
