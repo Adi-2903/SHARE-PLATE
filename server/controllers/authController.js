@@ -52,6 +52,24 @@ export const login = async (req, res) => {
 
 // GET /api/auth/me
 export const getMe = async (req, res) => {
-  const user = await User.findById(req.user.id).select('-password');
-  res.json(user);
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) return res.status(401).json({ error: 'User not found' });
+    // Return a consistent shape that matches login/register responses
+    res.json({
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      name: `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      role: user.role,
+      orgName: user.orgName,
+      city: user.city,
+      phone: user.phone,
+      isVerified: user.isVerified,
+      isActive: user.isActive,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };

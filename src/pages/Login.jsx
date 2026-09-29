@@ -67,8 +67,8 @@ export default function Login() {
     e.preventDefault()
     setLoading(true)
     try {
-      await register(regForm)
-      const user = await login(regForm.email, regForm.password)
+      // register() already stores the token and sets user — no need to call login() again.
+      const user = await register(regForm)
       toast.success('Account created! 🌱')
       navigate(ROLE_ROUTES[user.role] || '/')
     } catch (err) {

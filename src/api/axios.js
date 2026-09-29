@@ -9,15 +9,7 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Auto-redirect to login on 401 Unauthorized
-api.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    if (err.response?.status === 401) {
-      localStorage.removeItem('shareplate_token')
-    }
-    return Promise.reject(err)
-  }
-)
+// NOTE: The 401 response interceptor is registered in AuthContext so it can
+// also clear React user state. Do not add a global 401 handler here.
 
 export default api

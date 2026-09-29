@@ -221,7 +221,13 @@ export default function DonatePage() {
       const { data } = await api.get('/donations/my')
       setHistory(data)
       setStep(1)
-      setForm({ foodName: '', quantity: '', foodType: 'Vegetarian', expiryTime: '', address: '', city: '', phone: '', notes: '' })
+      // Preserve user profile values (city, phone) so the next donation is pre-filled
+      setForm({
+        foodName: '', quantity: '', foodType: 'Vegetarian', expiryTime: '',
+        address: '', notes: '',
+        city: user?.city || '',
+        phone: user?.phone || '',
+      })
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to submit.')
     } finally { setLoading(false) }
