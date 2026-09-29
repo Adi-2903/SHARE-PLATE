@@ -63,6 +63,7 @@
 - [The Problem We Solve](#-the-problem-we-solve)
 - [Live Demo & Credentials](#-live-demo--demo-credentials)
 - [Features at a Glance](#-features-at-a-glance)
+- [End-to-End Workflow & Donation Lifecycle](#-end-to-end-workflow--donation-lifecycle)
 - [System Architecture](#-system-architecture)
 - [Tech Stack](#-tech-stack)
 - [Project Structure](#-project-structure)
@@ -169,6 +170,116 @@ posts on SharePlate      before expiry          delivers it          🍽️ ✅
 - **Plus Jakarta Sans + Inter** typography — premium feel
 - **Material Symbols Outlined** icon set
 - Fully responsive — desktop sidebar + mobile top bar + bottom navigation
+
+---
+
+## 🔄 End-to-End Workflow & Donation Lifecycle
+
+SharePlate operates a 4-role real-time food redistribution workflow (**Donor → NGO → Volunteer → Beneficiary**), supervised by System Admins. The system features flexible dual-path dispatching for volunteer pick-ups.
+
+### 📐 End-to-End Visual Map
+
+```text
+               ┌──────────────────────────────────────────────────────────┐
+               │                  1. DONOR FOOD POSTING                   │
+               │  Donor posts surplus food on /donate                     │
+               │  POST /api/donations                                     │
+               └────────────────────────────┬─────────────────────────────┘
+                                            │
+                                            ▼
+                                   Status: AVAILABLE
+                                            │
+                                            ▼
+               ┌──────────────────────────────────────────────────────────┐
+               │                    2. NGO CLAIM                          │
+               │  NGO claims batch from Food Board on /ngo                │
+               │  PATCH /api/donations/:id/claim                          │
+               └────────────────────────────┬─────────────────────────────┘
+                                            │
+                                            ▼
+                                    Status: CLAIMED
+                                            │
+                    ┌───────────────────────┴───────────────────────┐
+                    │                                               │
+                    ▼ (Path A: Self-Assign)                         ▼ (Path B: NGO Assigns)
+  ┌───────────────────────────────────┐           ┌───────────────────────────────────┐
+  │ 3a. VOLUNTEER SELF-CLAIMS         │           │ 3b. NGO ASSIGNS VOLUNTEER         │
+  │ Volunteer browsing "Available     │           │ NGO picks volunteer from dropdown │
+  │ Pickups" clicks "Accept Pickup"   │           │ on NGO Dashboard & clicks "Assign"│
+  │ PATCH /api/donations/:id/transit  │           │ PATCH /api/donations/:id/assign   │
+  └─────────────────┬─────────────────┘           └─────────────────┬─────────────────┘
+                    │                                               │
+                    └───────────────────────┬───────────────────────┘
+                                            │
+                                            ▼
+                                   Status: IN_TRANSIT
+                                            │
+                                            ▼
+               ┌──────────────────────────────────────────────────────────┐
+               │                 4. DELIVERY COMPLETION                   │
+               │  Volunteer or NGO marks delivery completed               │
+               │  PATCH /api/donations/:id/deliver                        │
+               └────────────────────────────┬─────────────────────────────┘
+                                            │
+                                            ▼
+                                   Status: DELIVERED ✅
+```
+
+---
+
+### 📝 Detailed Operational Steps
+
+#### 1️⃣ Step 1: Donor Posts Surplus Food (`Donor` Portal: `/donate`)
+* **Trigger**: Restaurant, caterer, or bakery has excess perishable food.
+* **UI Flow**: 3-step guided wizard (`Food Details` → `Pickup Location & City` → `Expiry & Notes`).
+* **API Action**: `POST /api/donations` with payload `{ foodName, quantity, pickupAddress, city, expiryTime, foodType, notes }`.
+* **State Result**: Donation created with `status = "available"`. Urgency (`urgent`, `moderate`, `safe`) is auto-computed via pre-save hook based on hours remaining until expiry.
+
+#### 2️⃣ Step 2: NGO Claims Food Batch (`NGO` Portal: `/ngo` or `/donations`)
+* **Trigger**: NGO browses live urgent food listings in their area.
+* **UI Flow**: NGO clicks **"Claim Donation"** button on the food card.
+* **API Action**: `PATCH /api/donations/:id/claim` (requires `ngo` role token).
+* **State Result**: `status` updates to `"claimed"`, `claimedBy` is set to the NGO's account ID. Donation moves from public board to NGO's **"My Claims"** tab.
+
+#### 3️⃣ Step 3: Volunteer Dispatch (Dual Channel)
+SharePlate supports two real-world operational models for coordinating pick-up logistics:
+
+* **Path A — Volunteer Self-Claim (On-Demand Pickups)**:
+  * **UI Flow**: Volunteer logs into `/volunteer`, navigates to **"Available Pickups"** tab (showing claimed donations in their city needing transport), and clicks **"Accept Pickup"**.
+  * **API Action**: `PATCH /api/donations/:id/transit`.
+  * **State Result**: `volunteer` is bound to the logged-in volunteer's ID, and `status` advances to `"in_transit"`.
+
+* **Path B — NGO Direct Volunteer Assignment**:
+  * **UI Flow**: NGO views claimed donation on `/ngo`, selects an active volunteer from the inline **"Assign Volunteer"** dropdown picker, and clicks **"Assign"**.
+  * **API Action**: `PATCH /api/donations/:id/assign` with `{ volunteerId }`.
+  * **State Result**: `volunteer` is set to selected volunteer, and `status` advances to `"in_transit"`.
+
+#### 4️⃣ Step 4: Transport & Delivery Confirmation (`Volunteer` / `NGO`)
+* **Trigger**: Food is transported and delivered to the destination shelter/beneficiary.
+* **UI Flow**: Volunteer on `/volunteer` or NGO on `/ngo` clicks **"Mark as Delivered"**.
+* **API Action**: `PATCH /api/donations/:id/deliver`.
+* **State Result**: `status` updates to `"delivered"`. Impact metrics (Total Meals Rescued, CO₂ Saved, Deliveries Completed) immediately update across all dashboards.
+
+#### 5️⃣ Step 5: Admin Supervision & Override (`Admin` Portal: `/admin`)
+* **Role**: Platform Administrator.
+* **Capabilities**: Full visibility over all users and donation batches.
+* **API Actions**:
+  * `PATCH /api/donations/:id/status` — Override status to any state (`available`, `claimed`, `in_transit`, `delivered`, `expired`, `cancelled`).
+  * `DELETE /api/donations/:id` — Delete invalid or test listings.
+  * `DELETE /api/admin/users/:id` — Manage platform accounts.
+
+---
+
+### 📊 Status & Role Matrix
+
+| Initial Status | Next Status | Action | Endpoint | Permitted Roles | Frontend Portal |
+|---|---|---|---|---|---|
+| *(New)* | `available` | Create Donation | `POST /api/donations` | `donor`, `admin` | `/donate` |
+| `available` | `claimed` | Claim Donation | `PATCH /api/donations/:id/claim` | `ngo`, `admin` | `/ngo`, `/donations` |
+| `claimed` | `in_transit` | Accept Pickup (Self) | `PATCH /api/donations/:id/transit` | `volunteer`, `admin` | `/volunteer` (Available Pickups) |
+| `claimed` | `in_transit` | Assign Volunteer | `PATCH /api/donations/:id/assign` | `ngo`, `admin` | `/ngo` (My Claims) |
+| `in_transit` | `delivered` | Mark Delivered | `PATCH /api/donations/:id/deliver` | `volunteer`, `ngo`, `admin` | `/volunteer`, `/ngo` |
+| Any State | Any State | Admin Override | `PATCH /api/donations/:id/status` | `admin` | `/admin` |
 
 ---
 
@@ -420,18 +531,24 @@ npm run dev
 | `GET` | `/api/donations/my` | 🔒 Donor | Donor's own listings |
 | `GET` | `/api/donations/:id` | Public | Single donation |
 | `POST` | `/api/donations` | 🔒 Donor | Create donation |
-| `PATCH` | `/api/donations/:id/claim` | 🔒 NGO | NGO claims |
-| `PATCH` | `/api/donations/:id/transit` | 🔒 Volunteer | Confirm pickup |
+| `PATCH` | `/api/donations/:id/claim` | 🔒 NGO | NGO claims donation |
+| `PATCH` | `/api/donations/:id/assign` | 🔒 NGO/Admin | NGO assigns volunteer |
+| `PATCH` | `/api/donations/:id/transit` | 🔒 Volunteer/Admin | Volunteer accepts pickup / transit |
 | `PATCH` | `/api/donations/:id/deliver` | 🔒 Volunteer/NGO | Mark delivered |
 | `PATCH` | `/api/donations/:id/status` | 🔒 Admin | Override status |
-| `DELETE` | `/api/donations/:id` | 🔒 Admin | Delete |
+| `DELETE` | `/api/donations/:id` | 🔒 Admin | Delete donation |
+
+### Volunteers
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `GET` | `/api/volunteers` | Public/🔒 NGO | Get list of active volunteers for assignment |
 
 ### Admin
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
-| `GET` | `/api/admin/stats` | 🔒 Admin | Full stats |
+| `GET` | `/api/admin/stats` | 🔒 Admin | Full platform stats |
 | `GET` | `/api/admin/users` | 🔒 Admin | All users |
-| `DELETE` | `/api/admin/users/:id` | 🔒 Admin | Delete user |
+| `DELETE` | `/api/admin/users/:id` | 🔒 Admin | Delete user account |
 
 ---
 

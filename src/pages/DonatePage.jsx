@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
+import { getErrorMessage } from '../utils/errorHandler'
 
 const S = { fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }
 
@@ -229,7 +230,7 @@ export default function DonatePage() {
         phone: user?.phone || '',
       })
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to submit.')
+      toast.error(getErrorMessage(err, 'Failed to submit.'))
     } finally { setLoading(false) }
   }
 

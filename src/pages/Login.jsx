@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../api/axios'
 import toast from 'react-hot-toast'
+import { getErrorMessage } from '../utils/errorHandler'
 
 const ROLE_ROUTES = { donor: '/donate', ngo: '/ngo', volunteer: '/volunteer', admin: '/admin' }
 
@@ -59,7 +60,7 @@ export default function Login() {
       toast.success(`Welcome back! 🎉`)
       navigate(ROLE_ROUTES[user.role] || '/')
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Login failed.')
+      toast.error(getErrorMessage(err, 'Login failed.'))
     } finally { setLoading(false) }
   }
 
@@ -72,7 +73,7 @@ export default function Login() {
       toast.success('Account created! 🌱')
       navigate(ROLE_ROUTES[user.role] || '/')
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Registration failed.')
+      toast.error(getErrorMessage(err, 'Registration failed.'))
     } finally { setLoading(false) }
   }
 
@@ -92,7 +93,7 @@ export default function Login() {
         toast.success(`Demo ready! Logged in as ${acc.role} 🎉`, { id })
         navigate(ROLE_ROUTES[user.role] || '/')
       } catch (err2) {
-        toast.error(err2.response?.data?.error || 'Demo setup failed.', { id })
+        toast.error(getErrorMessage(err2, 'Demo setup failed.'), { id })
       }
     } finally { setDemoLoading(null) }
   }

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
+import { getErrorMessage } from '../utils/errorHandler'
 
 const S = { fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }
 
@@ -132,6 +133,8 @@ export default function NGODashboard() {
   const { user } = useAuth()
   const [tab, setTab] = useState('available')
   const [donations, setDonations] = useState([])
+  const [volunteers, setVolunteers] = useState([])
+  const [volunteerSelections, setVolunteerSelections] = useState({}) // donationId -> selectedVolunteerId
   const [stats, setStats] = useState({ totalClaimed: 0, mealsServed: 0, urgentRescued: 0, co2Saved: 0 })
   const [loading, setLoading] = useState(true)
 
@@ -155,12 +158,28 @@ export default function NGODashboard() {
 
   useEffect(() => { fetchData() }, [user?._id])
 
+  // Fetch volunteer list so NGO can assign one to a claim
+  useEffect(() => {
+    api.get('/volunteers').then(({ data }) => setVolunteers(data)).catch(() => {})
+  }, [])
+
+  const handleAssignVolunteer = async (donationId) => {
+    const volunteerId = volunteerSelections[donationId]
+    if (!volunteerId) return toast.error('Please select a volunteer first.')
+    try {
+      await api.patch(`/donations/${donationId}/assign`, { volunteerId })
+      toast.success('🚴 Volunteer assigned! They\'ve been notified.')
+      setVolunteerSelections(prev => { const n = { ...prev }; delete n[donationId]; return n })
+      fetchData()
+    } catch (err) { toast.error(getErrorMessage(err, 'Assignment failed')) }
+  }
+
   const handleClaim = async (id) => {
     try {
       await api.patch(`/donations/${id}/claim`)
       toast.success('🤝 Donation claimed! Volunteer being assigned.')
       fetchData()
-    } catch (err) { toast.error(err.response?.data?.error || 'Claim failed') }
+    } catch (err) { toast.error(getErrorMessage(err, 'Claim failed')) }
   }
 
   const handleConfirmDelivery = async (id) => {
@@ -168,7 +187,7 @@ export default function NGODashboard() {
       await api.patch(`/donations/${id}/deliver`)
       toast.success('📦 Delivery receipt confirmed! Thank you.')
       fetchData()
-    } catch (err) { toast.error(err.response?.data?.error || 'Failed to confirm') }
+    } catch (err) { toast.error(getErrorMessage(err, 'Failed to confirm')) }
   }
 
   const available = donations.filter(d => d.status === 'available')
@@ -294,10 +313,52 @@ export default function NGODashboard() {
                         </button>
                       ) : (
                         <div className="space-y-2">
+                          {/* Status chip */}
                           <div className="text-center text-xs font-semibold py-2 rounded-full"
                             style={{ background: 'rgba(108,248,187,0.2)', color: '#00714d', border: '1px solid rgba(0,113,77,0.2)' }}>
-                            ✅ Claimed · {d.status === 'delivered' ? 'Delivered' : d.status === 'in_transit' ? '🚴 In Transit' : 'Awaiting volunteer'}
+                            {d.status === 'delivered' ? '✅ Delivered'
+                              : d.status === 'in_transit' ? '🚴 In Transit'
+                              : '⏳ Awaiting Volunteer'}
                           </div>
+
+                          {/* Assigned volunteer info */}
+                          {d.volunteer && (
+                            <div className="flex items-center gap-1.5 text-xs text-[#3d4a42] px-1">
+                              <span className="material-symbols-outlined text-sm text-[#006948]">electric_moped</span>
+                              <span className="font-semibold">
+                                {d.volunteer?.firstName
+                                  ? `${d.volunteer.firstName} ${d.volunteer.lastName}`
+                                  : 'Volunteer assigned'}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Volunteer picker — show only if no volunteer assigned yet and not delivered */}
+                          {!d.volunteer && d.status !== 'delivered' && (
+                            <div className="flex gap-2">
+                              <select
+                                value={volunteerSelections[d._id] || ''}
+                                onChange={e => setVolunteerSelections(prev => ({ ...prev, [d._id]: e.target.value }))}
+                                className="flex-1 text-xs rounded-xl border px-2 py-2 outline-none"
+                                style={{ borderColor: 'rgba(188,202,192,0.5)', background: 'rgba(242,243,255,0.6)', color: '#131b2e' }}>
+                                <option value="">Assign volunteer…</option>
+                                {volunteers.map(v => (
+                                  <option key={v._id} value={v._id}>
+                                    {v.firstName} {v.lastName}{v.city ? ` • ${v.city}` : ''}
+                                  </option>
+                                ))}
+                              </select>
+                              <button
+                                onClick={() => handleAssignVolunteer(d._id)}
+                                disabled={!volunteerSelections[d._id]}
+                                className="px-3 py-2 rounded-xl text-xs font-bold text-white transition-all hover:scale-[1.02] disabled:opacity-40"
+                                style={{ background: 'linear-gradient(135deg, #006948, #00855d)' }}>
+                                <span className="material-symbols-outlined text-sm">check</span>
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Confirm delivery */}
                           {d.status !== 'delivered' && (
                             <button onClick={() => handleConfirmDelivery(d._id)}
                               className="w-full py-2 rounded-full text-xs font-bold text-white transition-all hover:scale-[1.01]"

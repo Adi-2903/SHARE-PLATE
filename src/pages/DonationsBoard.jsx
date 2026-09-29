@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
+import { getErrorMessage } from '../utils/errorHandler'
 
 const S = { fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }
 
@@ -184,7 +185,7 @@ export default function DonationsBoard() {
       await api.patch(`/donations/${id}/claim`)
       toast.success('Food claimed! Volunteer assignment in progress. 🤝')
       fetchDonations()
-    } catch (err) { toast.error(err.response?.data?.error || 'Claim failed') }
+    } catch (err) { toast.error(getErrorMessage(err, 'Claim failed')) }
   }
 
   const getLevel = (d) => {

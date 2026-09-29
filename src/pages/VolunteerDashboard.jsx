@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
+import { getErrorMessage } from '../utils/errorHandler'
 
 const S = { fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }
 
@@ -116,24 +117,29 @@ export default function VolunteerDashboard() {
   const { user } = useAuth()
   const [donations, setDonations] = useState([])
   const [myDeliveries, setMyDeliveries] = useState([])
+  const [availablePickups, setAvailablePickups] = useState([])
   const [stats, setStats] = useState({ totalDeliveries: 0, mealsDelivered: 0, kmRidden: 0, co2Saved: 0 })
   const [loading, setLoading] = useState(true)
+  const [volTab, setVolTab] = useState('active') // 'active' | 'pickups'
 
   const fetchData = () => {
     setLoading(true)
     api.get('/donations').then(({ data }) => {
       setDonations(data)
-      // Active: claimed/in_transit donations assigned to THIS volunteer
+      // My active: claimed OR in_transit donations assigned to THIS volunteer
       const myActive = data.filter(d => {
         const volId = d.volunteer?._id || d.volunteer
         return (d.status === 'claimed' || d.status === 'in_transit') && volId && String(volId) === String(user?._id)
       })
+      // Available pickups: claimed by an NGO but NO volunteer assigned yet
+      const unassigned = data.filter(d => d.status === 'claimed' && !d.volunteer)
       // Delivered: completed by this volunteer
       const myDelivered = data.filter(d => {
         const volId = d.volunteer?._id || d.volunteer
         return d.status === 'delivered' && volId && String(volId) === String(user?._id)
       })
       setMyDeliveries(myActive)
+      setAvailablePickups(unassigned)
       const total = myDelivered.length
       const meals = myDelivered.reduce((a, d) => a + (Number(d.quantity) || 0), 0)
       setStats({ totalDeliveries: total, mealsDelivered: meals, kmRidden: Math.floor(total * 3.4), co2Saved: Math.floor(meals * 0.5) })
@@ -142,12 +148,21 @@ export default function VolunteerDashboard() {
 
   useEffect(() => { fetchData() }, [user?._id])
 
+  // Self-assign: marks donation as in_transit and assigns this volunteer
+  const handleAcceptPickup = async (id) => {
+    try {
+      await api.patch(`/donations/${id}/transit`)
+      toast.success('🚴 Pickup accepted! Head to the donor location.')
+      fetchData()
+    } catch (err) { toast.error(getErrorMessage(err, 'Failed to accept')) }
+  }
+
   const handlePickup = async (id) => {
     try {
       await api.patch(`/donations/${id}/transit`)
       toast.success('📍 Pickup confirmed! Navigate to the donor location.')
       fetchData()
-    } catch (err) { toast.error(err.response?.data?.error || 'Failed') }
+    } catch (err) { toast.error(getErrorMessage(err, 'Failed')) }
   }
 
   const handleDeliver = async (id) => {
@@ -155,7 +170,7 @@ export default function VolunteerDashboard() {
       await api.patch(`/donations/${id}/deliver`)
       toast.success('✅ Delivery marked as complete! Amazing work 🌱')
       fetchData()
-    } catch (err) { toast.error(err.response?.data?.error || 'Failed') }
+    } catch (err) { toast.error(getErrorMessage(err, 'Failed')) }
   }
 
   const available = donations.filter(d => d.status === 'available').slice(0, 4)
@@ -206,22 +221,52 @@ export default function VolunteerDashboard() {
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* Active deliveries */}
+          {/* ── LEFT COLUMN: tab card ── */}
           <div className="xl:col-span-2 rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.9)', boxShadow: '0 8px 32px -4px rgba(0,105,72,0.06)' }}>
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-xl font-bold text-[#131b2e]" style={S}>🚴 Active Deliveries</h2>
-              <span className="px-3 py-1 rounded-full text-xs font-bold" style={{ background: 'rgba(108,248,187,0.3)', color: '#00714d' }}>
-                {myDeliveries.length} active
-              </span>
+              <h2 className="text-xl font-bold text-[#131b2e]" style={S}>🚴 Deliveries</h2>
             </div>
 
-            {myDeliveries.length === 0 ? (
+          {/* ── TAB BAR ── */}
+          <div className="flex gap-2 mb-5">
+            {[
+              { key: 'active', label: `My Active`, count: myDeliveries.length, icon: 'electric_moped' },
+              { key: 'pickups', label: `Available Pickups`, count: availablePickups.length, icon: 'package_2' },
+            ].map(t => (
+              <button key={t.key} onClick={() => setVolTab(t.key)}
+                className="flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold transition-all"
+                style={volTab === t.key
+                  ? { background: '#006948', color: '#fff' }
+                  : { background: 'rgba(234,237,255,0.6)', color: '#3d4a42' }}>
+                <span className="material-symbols-outlined text-base">{t.icon}</span>
+                {t.label}
+                {t.count > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                    style={volTab === t.key
+                      ? { background: 'rgba(255,255,255,0.25)', color: '#fff' }
+                      : { background: '#006948', color: '#fff' }}>
+                    {t.count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {loading ? (
+            <div className="text-center py-12">
+              <span className="material-symbols-outlined text-4xl animate-spin" style={{ color: '#006948' }}>refresh</span>
+            </div>
+          ) : volTab === 'active' ? (
+            // ── MY ACTIVE DELIVERIES ──────────────────────
+            myDeliveries.length === 0 ? (
               <div className="text-center py-12">
                 <span className="material-symbols-outlined text-5xl text-[#bccac0]">electric_moped</span>
                 <p className="text-sm text-[#3d4a42] mt-3">No active deliveries right now.</p>
-                <Link to="/donations" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold hover:underline" style={{ color: '#006948' }}>
-                  Browse the food board →
-                </Link>
+                <button onClick={() => setVolTab('pickups')}
+                  className="mt-3 inline-flex items-center gap-1 text-sm font-semibold hover:underline"
+                  style={{ color: '#006948' }}>
+                  View available pickups →
+                </button>
               </div>
             ) : (
               <div className="space-y-4">
@@ -275,34 +320,99 @@ export default function VolunteerDashboard() {
                   )
                 })}
               </div>
-            )}
-
-            {/* Available to pick up */}
-            {available.length > 0 && (
-              <div className="mt-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-base font-bold text-[#131b2e]" style={S}>📦 Available Nearby</h3>
-                  <Link to="/donations" className="text-xs font-semibold hover:underline" style={{ color: '#006948' }}>View all →</Link>
-                </div>
-                <div className="space-y-3">
-                  {available.map(d => (
-                    <div key={d._id} className="flex items-center justify-between p-3 rounded-xl border"
-                      style={{ background: 'rgba(242,243,255,0.6)', borderColor: 'rgba(188,202,192,0.3)' }}>
-                      <div>
-                        <div className="text-sm font-bold text-[#131b2e]">{d.foodName}</div>
-                        <div className="text-xs text-[#3d4a42]">{d.quantity} servings • {d.city}</div>
-                      </div>
-                      <Link to="/donations"
-                        className="text-xs font-bold px-4 py-1.5 rounded-full border transition-all hover:bg-emerald-50"
-                        style={{ borderColor: 'rgba(0,105,72,0.3)', color: '#006948' }}>
-                        View Board
-                      </Link>
-                    </div>
-                  ))}
-                </div>
+            )
+          ) : (
+            // ── AVAILABLE PICKUPS (claimed by NGO, no volunteer yet) ──
+            availablePickups.length === 0 ? (
+              <div className="text-center py-12">
+                <span className="material-symbols-outlined text-5xl text-[#bccac0]">package_2</span>
+                <p className="text-sm text-[#3d4a42] mt-3">No pickups available right now.</p>
+                <p className="text-xs text-[#6d7a72] mt-1">NGOs will claim food and post pickups here.</p>
               </div>
-            )}
-          </div>
+            ) : (
+              <div className="space-y-4">
+                {availablePickups.map(d => {
+                  const hrs = (new Date(d.expiryTime) - new Date()) / 3_600_000
+                  const isUrgent = hrs < 4
+                  return (
+                    <div key={d._id} className="rounded-2xl p-5 border transition-all hover:-translate-y-0.5"
+                      style={{
+                        background: isUrgent ? 'rgba(255,218,214,0.15)' : 'rgba(255,255,255,0.7)',
+                        borderColor: isUrgent ? 'rgba(186,26,26,0.25)' : 'rgba(188,202,192,0.4)',
+                        boxShadow: '0 4px 16px -4px rgba(0,105,72,0.06)',
+                      }}>
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h3 className="text-base font-bold text-[#131b2e]" style={S}>{d.foodName}</h3>
+                          <p className="text-sm text-[#3d4a42]">{d.quantity} servings • {d.donorName}</p>
+                        </div>
+                        <span className="text-xs font-bold px-3 py-1 rounded-full"
+                          style={isUrgent
+                            ? { background: 'rgba(255,218,214,0.5)', color: '#ba1a1a' }
+                            : { background: 'rgba(108,248,187,0.3)', color: '#00714d' }}>
+                          {isUrgent ? '🔴 URGENT' : '🤝 Claimed by NGO'}
+                        </span>
+                      </div>
+                      {/* NGO info */}
+                      {d.claimedBy && (
+                        <div className="flex items-center gap-1.5 text-xs text-[#3d4a42] mb-2">
+                          <span className="material-symbols-outlined text-sm text-[#6d7a72]">apartment</span>
+                          NGO: <span className="font-semibold">{d.claimedBy?.orgName || `${d.claimedBy?.firstName} ${d.claimedBy?.lastName}`}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-4 text-xs text-[#3d4a42] mb-4">
+                        <div className="flex items-center gap-1"><span className="material-symbols-outlined text-sm text-[#6d7a72]">pin_drop</span>{d.address ? `${d.address}, ` : ''}{d.city}</div>
+                        <div className="flex items-center gap-1"><span className="material-symbols-outlined text-sm text-[#6d7a72]">timer</span>
+                          {hrs > 0 ? `${Math.floor(hrs)}h ${Math.round((hrs % 1) * 60)}m left` : 'Expired'}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => handleAcceptPickup(d._id)}
+                          className="flex-1 py-2.5 rounded-full text-xs font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
+                          style={{ background: isUrgent ? '#dc2626' : 'linear-gradient(135deg, #006948, #00855d)' }}>
+                          🚴 Accept & Pick Up
+                        </button>
+                        {d.phone && (
+                          <a href={`tel:${d.phone}`} className="px-4 py-2.5 rounded-full text-xs font-bold border transition-all hover:bg-gray-50"
+                            style={{ borderColor: 'rgba(188,202,192,0.5)', color: '#3d4a42' }}>
+                            <span className="material-symbols-outlined text-sm">call</span>
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          )}
+
+          {/* Available (unclaimed) food listings — shown below active tab only */}
+          {volTab === 'active' && available.length > 0 && (
+            <div className="mt-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-bold text-[#131b2e]" style={S}>📦 Available Nearby</h3>
+                <Link to="/donations" className="text-xs font-semibold hover:underline" style={{ color: '#006948' }}>View all →</Link>
+              </div>
+              <div className="space-y-3">
+                {available.map(d => (
+                  <div key={d._id} className="flex items-center justify-between p-3 rounded-xl border"
+                    style={{ background: 'rgba(242,243,255,0.6)', borderColor: 'rgba(188,202,192,0.3)' }}>
+                    <div>
+                      <div className="text-sm font-bold text-[#131b2e]">{d.foodName}</div>
+                      <div className="text-xs text-[#3d4a42]">{d.quantity} servings • {d.city}</div>
+                    </div>
+                    <Link to="/donations"
+                      className="text-xs font-bold px-4 py-1.5 rounded-full border transition-all hover:bg-emerald-50"
+                      style={{ borderColor: 'rgba(0,105,72,0.3)', color: '#006948' }}>
+                      View Board
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          </div>{/* end left card */}
 
           {/* Right column — badges + leaderboard */}
           <div className="space-y-5">
