@@ -15,8 +15,8 @@
   * { box-sizing: border-box; }
 
   body {
-    background-color: #070d0a;
-    color: #f0fdf4;
+    background-color: #faf8ff;
+    color: #131b2e;
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
@@ -27,8 +27,8 @@
   }
 
   ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: #070d0a; }
-  ::-webkit-scrollbar-thumb { background: #059669; border-radius: 9999px; }
+  ::-webkit-scrollbar-track { background: #faf8ff; }
+  ::-webkit-scrollbar-thumb { background: #006948; border-radius: 9999px; }
 }
 
 @layer utilities {
@@ -36,26 +36,27 @@
   .font-jakarta { font-family: 'Plus Jakarta Sans', sans-serif; }
 
   .gradient-text {
-    background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #f97316 100%);
+    background: linear-gradient(135deg, #006948 0%, #00855d 50%, #059669 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .gradient-emerald-btn {
-    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-    box-shadow: 0 8px 20px -4px rgba(16, 185, 129, 0.35);
+    background: linear-gradient(135deg, #006948 0%, #00855d 100%);
+    box-shadow: 0 8px 20px -4px rgba(0, 105, 72, 0.35);
   }
   .gradient-emerald-btn:hover {
-    background: linear-gradient(135deg, #047857 0%, #059669 100%);
-    box-shadow: 0 12px 24px -4px rgba(16, 185, 129, 0.5);
+    background: linear-gradient(135deg, #005238 0%, #006948 100%);
+    box-shadow: 0 12px 24px -4px rgba(0, 105, 72, 0.5);
   }
 
   .glass-card {
-    background: rgba(13, 26, 20, 0.85);
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 12px 32px -4px rgba(0, 105, 72, 0.06);
   }
 
   .glass-card-hover {
@@ -63,14 +64,14 @@
   }
   .glass-card-hover:hover {
     transform: translateY(-4px);
-    border-color: rgba(16, 185, 129, 0.4);
-    box-shadow: 0 20px 40px -10px rgba(5, 150, 105, 0.25);
+    border-color: rgba(0, 105, 72, 0.25);
+    box-shadow: 0 20px 40px -10px rgba(0, 105, 72, 0.12);
   }
 
   .glass-card-urgent {
-    background: rgba(26, 13, 13, 0.85);
-    border: 1px solid rgba(239, 68, 68, 0.35);
-    box-shadow: 0 0 25px rgba(239, 68, 68, 0.15);
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    box-shadow: 0 10px 30px -6px rgba(239, 68, 68, 0.12);
   }
   .glass-card-urgent:hover {
     box-shadow: 0 0 35px rgba(239, 68, 68, 0.3);

@@ -21,10 +21,19 @@ function Countdown({ expiryTime }) {
     const update = () => {
       const diff = new Date(expiryTime) - new Date()
       if (diff <= 0) { setText('Expired'); setLevel('urgent'); return }
-      const h = Math.floor(diff / 3_600_000)
+      const totalHours = Math.floor(diff / 3_600_000)
+      const days = Math.floor(totalHours / 24)
+      const hours = totalHours % 24
       const m = Math.floor((diff % 3_600_000) / 60_000)
-      setText(`${h}h ${m}m left`)
-      setLevel(diff < 4 * 3_600_000 ? (diff < 2 * 3_600_000 ? 'urgent' : 'moderate') : 'safe')
+      
+      let timeStr = ''
+      if (days > 0) {
+        timeStr = `${days}d ${hours}h left`
+      } else {
+        timeStr = `${hours}h ${m}m left`
+      }
+      setText(timeStr)
+      setLevel(diff < 4 * 3_600_000 ? 'urgent' : diff < 8 * 3_600_000 ? 'moderate' : 'safe')
     }
     update()
     const t = setInterval(update, 60_000)
