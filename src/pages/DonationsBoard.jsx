@@ -55,6 +55,7 @@ function SideNav({ active, user }) {
   const navLinks = [
     { id: 'home', icon: 'home', label: 'Home', to: '/' },
     { id: 'board', icon: 'lunch_dining', label: 'Board', to: '/donations' },
+    { id: 'map', icon: 'map', label: 'Rescue Map', to: '/map' },
     { id: 'donate', icon: 'volunteer_activism', label: 'Donate', to: '/donate' },
   ]
   if (user?.role === 'ngo') {

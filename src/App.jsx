@@ -7,6 +7,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import DonatePage from './pages/DonatePage'
 import DonationsBoard from './pages/DonationsBoard'
+import RescueMapPage from './pages/RescueMapPage'
 import NGODashboard from './pages/NGODashboard'
 import VolunteerDashboard from './pages/VolunteerDashboard'
 import AdminDashboard from './pages/AdminDashboard'
@@ -34,6 +35,7 @@ function AppRoutes() {
         <Route path="/login"     element={<Login />} />
         <Route path="/register"  element={<Register />} />
         <Route path="/donations" element={<DonationsBoard />} />
+        <Route path="/map"       element={<RescueMapPage />} />
 
         <Route path="/donate" element={
           <ProtectedRoute allowedRoles={['donor', 'admin']}>
