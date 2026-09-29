@@ -26,6 +26,10 @@ app.use(express.urlencoded({ extended: true }));
 let isConnected = false;
 const connectDB = async () => {
   if (isConnected || mongoose.connection.readyState === 1) return;
+  if (!process.env.MONGO_URI) {
+    console.warn('⚠️ MONGO_URI is missing from environment variables');
+    return;
+  }
   try {
     const conn = await mongoose.connect(process.env.MONGO_URI, {
       serverSelectionTimeoutMS: 5000,
@@ -43,15 +47,24 @@ app.use(async (_req, _res, next) => {
   next();
 });
 
-// ── Routes ──────────────────────────────────────────
+// ── Routes (Mounted for both /api/xxx and /xxx for Vercel Serverless compatibility) ─
 app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
+
 app.use('/api/donations', donationRoutes);
+app.use('/donations', donationRoutes);
+
 app.use('/api/ngos', ngoRoutes);
+app.use('/ngos', ngoRoutes);
+
 app.use('/api/volunteers', volunteerRoutes);
+app.use('/volunteers', volunteerRoutes);
+
 app.use('/api/admin', adminRoutes);
+app.use('/admin', adminRoutes);
 
 // ── Health Check ────────────────────────────────────
-app.get('/api', (_req, res) =>
+app.get(['/', '/api'], (_req, res) =>
   res.json({
     message: '🍽️ SharePlate API running on Vercel',
     version: '1.0.0',
