@@ -95,6 +95,41 @@ function SideNav({ active, user }) {
           </Link>
         )}
       </aside>
+
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 border-b"
+        style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(20px)', borderColor: 'rgba(188,202,192,0.3)' }}>
+        <Link to="/" className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white" style={{ background: 'linear-gradient(135deg, #006948, #00855d)' }}>
+            <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>eco</span>
+          </div>
+          <span className="font-bold text-base tracking-tight" style={{ ...S, color: '#006948' }}>SharePlate</span>
+        </Link>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold" style={{ background: 'rgba(255,218,214,0.6)', color: '#ba1a1a' }}>
+            <span className="w-1.5 h-1.5 rounded-full animate-ping" style={{ background: '#ba1a1a' }} />
+            MAP
+          </span>
+          {user ? (
+            <button onClick={handleLogout} className="p-2 rounded-full text-[#6d7a72] hover:bg-red-50 hover:text-red-500 transition-all">
+              <span className="material-symbols-outlined text-xl">logout</span>
+            </button>
+          ) : (
+            <Link to="/login" className="px-3 py-1.5 rounded-full text-xs font-bold text-white" style={{ background: '#006948' }}>Sign In</Link>
+          )}
+        </div>
+      </header>
+
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 h-16 flex items-center justify-around border-t"
+        style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(20px)', borderColor: 'rgba(188,202,192,0.3)' }}>
+        {navLinks.slice(0, 4).map(l => (
+          <Link key={l.id} to={l.to}
+            className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all min-w-[52px]"
+            style={active === l.id ? { color: '#006948' } : { color: '#6d7a72' }}>
+            <span className="material-symbols-outlined text-2xl" style={active === l.id ? { fontVariationSettings: "'FILL' 1" } : {}}>{l.icon}</span>
+            <span className="text-[10px] font-semibold">{l.label}</span>
+          </Link>
+        ))}
+      </nav>
     </>
   )
 }
@@ -121,16 +156,18 @@ export default function RescueMapPage() {
     return 'safe'
   }
 
-  const filtered = donations.filter(d => {
+  const activeDonations = donations.filter(d => !['delivered', 'expired'].includes(d.status))
+
+  const filtered = activeDonations.filter(d => {
     if (filter === 'all') return true
     return getLevel(d) === filter
   })
 
   const counts = {
-    all: donations.length,
-    urgent: donations.filter(d => getLevel(d) === 'urgent').length,
-    moderate: donations.filter(d => getLevel(d) === 'moderate').length,
-    safe: donations.filter(d => getLevel(d) === 'safe').length,
+    all: activeDonations.length,
+    urgent: activeDonations.filter(d => getLevel(d) === 'urgent').length,
+    moderate: activeDonations.filter(d => getLevel(d) === 'moderate').length,
+    safe: activeDonations.filter(d => getLevel(d) === 'safe').length,
   }
 
   return (

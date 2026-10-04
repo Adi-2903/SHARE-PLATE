@@ -4,8 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import api from '../api/axios'
 import toast from 'react-hot-toast'
 import { getErrorMessage } from '../utils/errorHandler'
-
-const ROLE_ROUTES = { donor: '/donate', ngo: '/ngo', volunteer: '/volunteer', admin: '/admin' }
+import { getRoleRoute } from '../utils/roleRoutes'
 
 const DEMO_ACCOUNTS = [
   { label: 'Donor', icon: 'restaurant', email: 'donor@demo.com', password: 'demo1234', role: 'donor', firstName: 'Rohan', lastName: 'Kumar', orgName: "Rohan's Kitchen", phone: '9000000002', city: 'Pune', pincode: '411001' },
@@ -58,7 +57,7 @@ export default function Login() {
     try {
       const user = await login(loginForm.email, loginForm.password)
       toast.success(`Welcome back! 🎉`)
-      navigate(ROLE_ROUTES[user.role] || '/')
+      navigate(getRoleRoute(user.role))
     } catch (err) {
       toast.error(getErrorMessage(err, 'Login failed.'))
     } finally { setLoading(false) }
@@ -71,7 +70,7 @@ export default function Login() {
       // register() already stores the token and sets user — no need to call login() again.
       const user = await register(regForm)
       toast.success('Account created! 🌱')
-      navigate(ROLE_ROUTES[user.role] || '/')
+      navigate(getRoleRoute(user.role))
     } catch (err) {
       toast.error(getErrorMessage(err, 'Registration failed.'))
     } finally { setLoading(false) }
@@ -85,13 +84,13 @@ export default function Login() {
     try {
       const user = await login(acc.email, acc.password)
       toast.success(`Logged in as ${acc.role}!`, { id })
-      navigate(ROLE_ROUTES[user.role] || '/')
+      navigate(getRoleRoute(user.role))
     } catch {
       try {
         await api.post('/auth/register', { firstName: acc.firstName, lastName: acc.lastName, email: acc.email, password: acc.password, phone: acc.phone, role: acc.role, orgName: acc.orgName, city: acc.city, pincode: acc.pincode })
         const user = await login(acc.email, acc.password)
         toast.success(`Demo ready! Logged in as ${acc.role} 🎉`, { id })
-        navigate(ROLE_ROUTES[user.role] || '/')
+        navigate(getRoleRoute(user.role))
       } catch (err2) {
         toast.error(getErrorMessage(err2, 'Demo setup failed.'), { id })
       }

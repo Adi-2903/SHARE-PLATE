@@ -1,4 +1,5 @@
 import Donation from '../models/Donation.js';
+import User from '../models/User.js';
 
 // ── GET /api/donations — All donations sorted by priority ────
 export const getDonations = async (req, res) => {
@@ -105,11 +106,18 @@ export const claimDonation = async (req, res) => {
 export const assignVolunteer = async (req, res) => {
   try {
     const { volunteerId } = req.body;
+    const volunteer = await User.findById(volunteerId);
+    if (!volunteer || volunteer.role !== 'volunteer')
+      return res.status(400).json({ error: 'Please assign a valid volunteer' });
+
     const donation = await Donation.findById(req.params.id);
     if (!donation) return res.status(404).json({ error: 'Not found' });
+    if (donation.status !== 'claimed')
+      return res.status(400).json({ error: 'Can only assign volunteers to claimed donations' });
+    if (req.user.role === 'ngo' && String(donation.claimedBy) !== String(req.user.id))
+      return res.status(403).json({ error: 'Only the claiming NGO can assign this rescue' });
 
     donation.volunteer  = volunteerId;
-    donation.status     = 'in_transit';
     donation.assignedAt = new Date();
     await donation.save();
     res.json(donation);
@@ -125,6 +133,8 @@ export const markTransit = async (req, res) => {
     if (!donation) return res.status(404).json({ error: 'Not found' });
     if (!['claimed'].includes(donation.status))
       return res.status(400).json({ error: 'Can only confirm pickup on claimed donations' });
+    if (donation.volunteer && String(donation.volunteer) !== String(req.user.id) && req.user.role !== 'admin')
+      return res.status(403).json({ error: 'This pickup is assigned to another volunteer' });
 
     donation.status     = 'in_transit';
     donation.assignedAt = new Date();
@@ -144,6 +154,10 @@ export const markDelivered = async (req, res) => {
     if (!donation) return res.status(404).json({ error: 'Not found' });
     if (!['claimed', 'in_transit'].includes(donation.status))
       return res.status(400).json({ error: 'Donation must be claimed or in_transit to mark as delivered' });
+    if (req.user.role === 'ngo' && String(donation.claimedBy) !== String(req.user.id))
+      return res.status(403).json({ error: 'Only the claiming NGO can confirm this delivery' });
+    if (req.user.role === 'volunteer' && String(donation.volunteer) !== String(req.user.id))
+      return res.status(403).json({ error: 'Only the assigned volunteer can complete this delivery' });
 
     donation.status      = 'delivered';
     donation.deliveredAt = new Date();

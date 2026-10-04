@@ -77,18 +77,6 @@ export default function Navbar() {
               </Link>
             </li>
           )}
-          {user?.role === 'admin' && (
-            <li>
-              <Link to="/admin"
-                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-                  isActive('/admin')
-                    ? 'text-[#006948] bg-[#006948]/10 font-bold'
-                    : 'text-[#3d4a42] hover:text-[#006948] hover:bg-[#006948]/8'
-                }`}>
-                Admin Panel
-              </Link>
-            </li>
-          )}
         </ul>
 
         {/* Auth Buttons */}
@@ -116,7 +104,7 @@ export default function Navbar() {
                 style={{ borderColor: 'rgba(0,105,72,0.3)' }}>
                 Sign In
               </Link>
-              <Link to="/login"
+              <Link to="/register"
                 className="px-5 py-2.5 text-xs font-bold text-white rounded-full transition-all hover:scale-[1.02] active:scale-[0.98]"
                 style={{ background: 'linear-gradient(135deg, #006948, #00855d)', boxShadow: '0 4px 16px -2px rgba(0,105,72,0.3)' }}>
                 Join Now
@@ -144,7 +132,7 @@ export default function Navbar() {
           {!user ? (
             <div className="flex flex-col gap-2 pt-2 border-t" style={{ borderColor: 'rgba(188,202,192,0.3)' }}>
               <Link to="/login" className="text-sm font-bold text-[#006948] py-2 text-center rounded-full border" style={{ borderColor: 'rgba(0,105,72,0.3)' }} onClick={() => setOpen(false)}>Sign In</Link>
-              <Link to="/login" className="text-sm font-bold bg-[#006948] text-white px-4 py-2.5 rounded-full text-center shadow-md" onClick={() => setOpen(false)}>Join Now</Link>
+              <Link to="/register" className="text-sm font-bold bg-[#006948] text-white px-4 py-2.5 rounded-full text-center shadow-md" onClick={() => setOpen(false)}>Join Now</Link>
             </div>
           ) : (
             <button onClick={() => { handleLogout(); setOpen(false) }} className="text-sm font-bold text-red-600 py-2 text-left">Sign Out</button>

@@ -17,8 +17,11 @@ function SideNav({ active, user }) {
     { id: 'ngo', icon: 'apartment', label: 'NGO Portal', to: '/ngo' },
     { id: 'volunteer', icon: 'electric_moped', label: 'Volunteer Hub', to: '/volunteer' },
   ]
+  const handleLogout = () => { logout(); navigate('/') }
+
   return (
-    <aside className="fixed top-0 left-0 h-screen w-64 flex flex-col justify-between p-6 z-40"
+    <>
+    <aside className="hidden lg:flex fixed top-0 left-0 h-screen w-64 flex-col justify-between p-6 z-40"
       style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(20px)', borderRight: '1px solid rgba(188,202,192,0.3)', boxShadow: '1px 0 8px rgba(0,105,72,0.04)' }}>
       <div className="flex flex-col gap-5">
         {/* Brand */}
@@ -66,11 +69,37 @@ function SideNav({ active, user }) {
         </nav>
       </div>
 
-      <button onClick={() => { logout(); navigate('/') }} className="w-full flex items-center gap-3 px-4 py-3 rounded-full text-sm font-semibold text-[#3d4a42] hover:bg-red-50 hover:text-red-600 transition-all text-left">
+      <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-full text-sm font-semibold text-[#3d4a42] hover:bg-red-50 hover:text-red-600 transition-all text-left">
         <span className="material-symbols-outlined text-xl">logout</span>
         Sign Out
       </button>
     </aside>
+
+    <header className="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 border-b"
+      style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(20px)', borderColor: 'rgba(188,202,192,0.3)' }}>
+      <Link to="/" className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white" style={{ background: '#006948' }}>
+          <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>eco</span>
+        </div>
+        <span className="font-extrabold text-base tracking-tight" style={{ ...S, color: '#006948' }}>SharePlate Admin</span>
+      </Link>
+      <button onClick={handleLogout} className="p-2 rounded-full text-[#6d7a72] hover:bg-red-50 hover:text-red-500 transition-all">
+        <span className="material-symbols-outlined text-xl">logout</span>
+      </button>
+    </header>
+
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 h-16 flex items-center justify-around border-t"
+      style={{ background: 'rgba(255,255,255,0.97)', backdropFilter: 'blur(20px)', borderColor: 'rgba(188,202,192,0.3)' }}>
+      {links.slice(0, 4).map(l => (
+        <Link key={l.id} to={l.to}
+          className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all min-w-[52px]"
+          style={active === l.id ? { color: '#006948' } : { color: '#6d7a72' }}>
+          <span className="material-symbols-outlined text-2xl" style={active === l.id ? { fontVariationSettings: "'FILL' 1" } : {}}>{l.icon}</span>
+          <span className="text-[10px] font-semibold">{l.label.replace(' Page', '').replace('Food ', '')}</span>
+        </Link>
+      ))}
+    </nav>
+    </>
   )
 }
 
@@ -188,7 +217,7 @@ export default function AdminDashboard() {
 
       <SideNav active="overview" user={user} />
 
-      <main className="flex-1 ml-0 lg:ml-64 pt-4 lg:pt-8 pb-20 lg:pb-0 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
+      <main className="flex-1 ml-0 lg:ml-64 pt-16 lg:pt-8 pb-20 lg:pb-0 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
           <div>

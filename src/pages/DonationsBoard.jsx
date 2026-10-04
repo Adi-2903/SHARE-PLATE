@@ -208,7 +208,9 @@ export default function DonationsBoard() {
     return 'safe'
   }
 
-  const filtered = donations.filter(d => {
+  const activeDonations = donations.filter(d => !['delivered', 'expired'].includes(d.status))
+
+  const filtered = activeDonations.filter(d => {
     const level = getLevel(d)
     const matchFilter = filter === 'all' || (filter === 'urgent' && level === 'urgent') || (filter === 'moderate' && level === 'moderate') || (filter === 'safe' && level === 'safe') || d.status === filter
     const matchSearch = !search || d.foodName?.toLowerCase().includes(search.toLowerCase()) || d.donorName?.toLowerCase().includes(search.toLowerCase()) || d.city?.toLowerCase().includes(search.toLowerCase())
@@ -216,10 +218,10 @@ export default function DonationsBoard() {
   })
 
   const counts = {
-    all: donations.length,
-    urgent: donations.filter(d => getLevel(d) === 'urgent').length,
-    moderate: donations.filter(d => getLevel(d) === 'moderate').length,
-    safe: donations.filter(d => getLevel(d) === 'safe').length,
+    all: activeDonations.length,
+    urgent: activeDonations.filter(d => getLevel(d) === 'urgent').length,
+    moderate: activeDonations.filter(d => getLevel(d) === 'moderate').length,
+    safe: activeDonations.filter(d => getLevel(d) === 'safe').length,
   }
 
   return (
