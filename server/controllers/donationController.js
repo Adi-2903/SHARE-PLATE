@@ -10,7 +10,7 @@ export const getDonations = async (req, res) => {
     if (city)   filter.city = new RegExp(city, 'i');
 
     const donations = await Donation.find(filter)
-      .populate('donor', 'firstName lastName orgName phone')
+      .populate('donor', 'firstName lastName orgName phone email')
       .populate('claimedBy', 'firstName lastName orgName')
       .populate('volunteer', 'firstName lastName phone')
       .sort({ createdAt: -1 });
@@ -40,7 +40,7 @@ export const getMyDonations = async (req, res) => {
 export const getDonationById = async (req, res) => {
   try {
     const d = await Donation.findById(req.params.id)
-      .populate('donor', 'firstName lastName orgName phone')
+      .populate('donor', 'firstName lastName orgName phone email')
       .populate('claimedBy', 'firstName lastName orgName')
       .populate('volunteer', 'firstName lastName phone');
     if (!d) return res.status(404).json({ error: 'Donation not found' });

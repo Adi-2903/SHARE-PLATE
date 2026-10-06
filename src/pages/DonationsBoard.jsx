@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import { getErrorMessage } from '../utils/errorHandler'
 import RescueMap from '../components/RescueMap'
+import { composeContactDonorEmail } from '../utils/gmailCompose'
 
 const S = { fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }
 
@@ -359,6 +360,34 @@ export default function DonationsBoard() {
                         </div>
                       )}
                     </div>
+
+                    {/* 📧 Email Donor via Gmail */}
+                    {user && d.donor?.email && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          composeContactDonorEmail({
+                            donorName: d.donorName,
+                            donorEmail: d.donor.email,
+                            foodName: d.foodName,
+                            quantity: d.quantity,
+                            city: d.city,
+                            expiryTime: d.expiryTime,
+                            senderName: user.orgName || `${user.firstName} ${user.lastName}`,
+                          })
+                          toast.success('Gmail opened! Just hit Send 📨')
+                        }}
+                        className="mt-3 w-full py-2.5 px-4 rounded-full text-xs font-bold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(234,67,53,0.08), rgba(66,133,244,0.08))',
+                          border: '1px solid rgba(66,133,244,0.25)',
+                          color: '#1a73e8',
+                        }}
+                      >
+                        <span className="material-symbols-outlined text-sm">mail</span>
+                        📧 Email Donor via Gmail
+                      </button>
+                    )}
                   </div>
 
                   {/* CTA */}

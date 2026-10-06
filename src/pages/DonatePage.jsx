@@ -4,6 +4,7 @@ import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import { getErrorMessage } from '../utils/errorHandler'
+import { composeAlertNGOsEmail } from '../utils/gmailCompose'
 
 const S = { fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }
 
@@ -174,6 +175,8 @@ export default function DonatePage() {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [history, setHistory] = useState([])
+  const [showEmailSuccess, setShowEmailSuccess] = useState(false)
+  const [lastSubmittedForm, setLastSubmittedForm] = useState(null)
   const [form, setForm] = useState({
     foodName: '', quantity: '', foodType: 'Vegetarian', expiryTime: '',
     address: '', city: '', phone: '', notes: ''
@@ -221,6 +224,41 @@ export default function DonatePage() {
       toast.success('🎉 Donation listed! NGOs are being notified.')
       const { data } = await api.get('/donations/my')
       setHistory(data)
+
+      // Save form data for email compose before resetting
+      const submittedForm = { ...form }
+      setLastSubmittedForm(submittedForm)
+
+      // Auto-open Gmail to alert NGOs
+      try {
+        const ngoRes = await api.get('/ngos/emails', { params: { city: form.city } })
+        let ngoEmails = ngoRes.data.map(n => n.email).filter(Boolean)
+        // If no NGOs in same city, get all NGOs
+        if (ngoEmails.length === 0) {
+          const allNgos = await api.get('/ngos/emails')
+          ngoEmails = allNgos.data.map(n => n.email).filter(Boolean)
+        }
+        if (ngoEmails.length > 0) {
+          const donorName = user?.orgName || `${user?.firstName} ${user?.lastName}`
+          composeAlertNGOsEmail({
+            ngoEmails,
+            donorName,
+            foodName: submittedForm.foodName,
+            quantity: submittedForm.quantity,
+            foodType: submittedForm.foodType,
+            city: submittedForm.city,
+            address: submittedForm.address,
+            phone: submittedForm.phone,
+            expiryTime: submittedForm.expiryTime,
+            notes: submittedForm.notes,
+          })
+          toast.success('Gmail opened — just click Send to alert NGOs! 📨')
+        }
+      } catch (emailErr) {
+        console.warn('Could not auto-open Gmail:', emailErr)
+      }
+
+      setShowEmailSuccess(true)
       setStep(1)
       // Preserve user profile values (city, phone) so the next donation is pre-filled
       setForm({
@@ -255,6 +293,78 @@ export default function DonatePage() {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           {/* ── MAIN FORM COLUMN ── */}
           <div className="xl:col-span-2">
+            {/* 📧 Email Success Panel */}
+            {showEmailSuccess && (
+              <div className="rounded-2xl p-6 mb-6 relative overflow-hidden" style={{
+                background: 'linear-gradient(135deg, rgba(108,248,187,0.15), rgba(234,237,255,0.4))',
+                border: '1px solid rgba(0,105,72,0.2)',
+                boxShadow: '0 8px 24px -4px rgba(0,105,72,0.1)',
+              }}>
+                <div className="absolute -right-12 -top-12 w-32 h-32 rounded-full blur-2xl pointer-events-none" style={{ background: 'rgba(108,248,187,0.3)' }} />
+                <div className="relative">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: '#006948' }}>
+                      <span className="material-symbols-outlined text-2xl text-white">check_circle</span>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-extrabold text-[#131b2e]" style={S}>🎉 Donation Submitted Successfully!</h3>
+                      <p className="text-xs text-[#3d4a42]">Gmail should have opened automatically. If it didn't, click below.</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-3 mt-4">
+                    <button
+                      onClick={async () => {
+                        try {
+                          const ngoRes = await api.get('/ngos/emails', { params: { city: lastSubmittedForm?.city } })
+                          let ngoEmails = ngoRes.data.map(n => n.email).filter(Boolean)
+                          if (ngoEmails.length === 0) {
+                            const allNgos = await api.get('/ngos/emails')
+                            ngoEmails = allNgos.data.map(n => n.email).filter(Boolean)
+                          }
+                          if (ngoEmails.length > 0) {
+                            const donorName = user?.orgName || `${user?.firstName} ${user?.lastName}`
+                            composeAlertNGOsEmail({
+                              ngoEmails,
+                              donorName,
+                              foodName: lastSubmittedForm.foodName,
+                              quantity: lastSubmittedForm.quantity,
+                              foodType: lastSubmittedForm.foodType,
+                              city: lastSubmittedForm.city,
+                              address: lastSubmittedForm.address,
+                              phone: lastSubmittedForm.phone,
+                              expiryTime: lastSubmittedForm.expiryTime,
+                              notes: lastSubmittedForm.notes,
+                            })
+                            toast.success('Gmail opened! Just hit Send 📨')
+                          } else {
+                            toast.error('No NGOs found to notify.')
+                          }
+                        } catch {
+                          toast.error('Could not fetch NGO emails.')
+                        }
+                      }}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
+                      style={{
+                        background: 'linear-gradient(135deg, #EA4335, #4285F4)',
+                        boxShadow: '0 4px 16px -2px rgba(66,133,244,0.4)',
+                      }}
+                    >
+                      <span className="material-symbols-outlined text-base">mail</span>
+                      📧 Alert NGOs via Gmail
+                    </button>
+                    <button
+                      onClick={() => setShowEmailSuccess(false)}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all hover:bg-gray-100"
+                      style={{ border: '1px solid rgba(188,202,192,0.5)', color: '#3d4a42' }}
+                    >
+                      <span className="material-symbols-outlined text-base">add_circle</span>
+                      Create Another Donation
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Stepper */}
             <div className="flex items-center gap-0 mb-8">
               {[

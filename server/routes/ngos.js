@@ -28,4 +28,18 @@ router.get('/my-claims', protect, authorize('ngo'), async (req, res) => {
   }
 });
 
+// GET /api/ngos/emails — Get NGO emails (optionally filter by city)
+router.get('/emails', async (req, res) => {
+  try {
+    const filter = { role: 'ngo' };
+    if (req.query.city) {
+      filter.city = new RegExp(req.query.city, 'i');
+    }
+    const ngos = await User.find(filter).select('email orgName firstName lastName city');
+    res.json(ngos);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;
