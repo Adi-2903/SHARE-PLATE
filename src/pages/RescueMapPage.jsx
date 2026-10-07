@@ -263,7 +263,7 @@ export default function RescueMapPage() {
           <div className="w-full h-[620px] rounded-2xl bg-white border flex items-center justify-center">
             <div className="text-center">
               <span className="material-symbols-outlined text-5xl animate-spin text-[#006948]">refresh</span>
-              <p className="text-sm text-[#64748b] mt-3 font-semibold">Loading live GIS map layers…</p>
+              <p className="text-sm text-[#64748b] mt-3 font-semibold">Loading live GIS radar…</p>
             </div>
           </div>
         ) : (

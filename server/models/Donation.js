@@ -45,6 +45,10 @@ const donationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// High-performance compound indexes to eliminate query lag and collection scans
+donationSchema.index({ status: 1, city: 1, priority: 1 });
+donationSchema.index({ donor: 1, createdAt: -1 });
+
 // Auto-compute priority before save
 donationSchema.pre('save', function (next) {
   const now = new Date();

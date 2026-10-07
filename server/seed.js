@@ -21,6 +21,7 @@ if (!MONGO_URI) {
 }
 
 // ── Demo Users ────────────────────────────────────────
+// ── Demo Users ────────────────────────────────────────
 const USERS = [
   {
     firstName: 'Admin', lastName: 'User',
@@ -29,22 +30,22 @@ const USERS = [
     orgName: 'SharePlate HQ', city: 'Mumbai', pincode: '400001',
   },
   {
-    firstName: 'Spice', lastName: 'Garden',
+    firstName: 'Rohan', lastName: 'Kumar',
     email: 'donor@demo.com', password: 'demo1234',
     phone: '9000000002', role: 'donor',
-    orgName: 'Spice Garden Restaurant', city: 'Pune', pincode: '411001',
+    orgName: 'The Grand Bhagwati Banquets', city: 'Ahmedabad', pincode: '380054',
   },
   {
-    firstName: 'Sunrise', lastName: 'NGO',
+    firstName: 'Sarthi', lastName: 'Foundation',
     email: 'ngo@demo.com', password: 'demo1234',
     phone: '9000000003', role: 'ngo',
-    orgName: 'Sunrise Foundation', city: 'Pune', pincode: '411002',
+    orgName: 'Sarthi Foundation Ahmedabad', city: 'Ahmedabad', pincode: '380015',
   },
   {
-    firstName: 'Rahul', lastName: 'Kumar',
+    firstName: 'Aman', lastName: 'Patel',
     email: 'volunteer@demo.com', password: 'demo1234',
     phone: '9000000004', role: 'volunteer',
-    city: 'Pune', pincode: '411003',
+    city: 'Ahmedabad', pincode: '380015',
   },
 ]
 
@@ -59,8 +60,6 @@ async function seed() {
     console.log('🗑️  Cleared existing data')
 
     // ── Create Users ─────────────────────────────────
-    // Using insertMany won't trigger pre-save hooks for password hashing
-    // So we use User.create() which runs all middleware
     const createdUsers = await Promise.all(USERS.map(u => new User(u).save()))
     console.log(`👤 Created ${createdUsers.length} demo users`)
 
@@ -74,44 +73,74 @@ async function seed() {
     const days  = (n) => new Date(Date.now() + n * 86_400_000)
     const ago   = (n) => new Date(Date.now() - n * 3_600_000)
 
-    // ── Sample Donations ─────────────────────────────
-    // Covers: all 6 foodType enums, all 3 priority levels, all 5 status values
+    // ── Sample Donations (Lean, Fast, Balanced across Cities) ──
     const donationsData = [
-      // ── URGENT (< 4 hours) ─────────────────────────
+      // ════ AHMEDABAD (Local Highlights) ════
+      {
+        donor: donor._id, donorName: 'The Grand Bhagwati Banquets',
+        donorType: 'Banquet Hall', foodName: 'Royal Gujarati Wedding Feast',
+        quantity: 120, foodType: 'Vegetarian',
+        expiryTime: hrs(1.8),    // urgent (< 4hrs)
+        address: 'SG Highway, Near Bodakdev', city: 'Ahmedabad', pincode: '380054',
+        phone: '9879012345', notes: 'Sealed buffet containers: Paneer Makhani, Gujarati Dal, Naan, Gulab Jamun',
+        status: 'available',
+      },
+      {
+        donor: donor._id, donorName: 'Das Khaman & Farsan House',
+        donorType: 'Café', foodName: 'Fresh Surati Khaman, Dhokla & Sev',
+        quantity: 55, foodType: 'Vegan',
+        expiryTime: hrs(2.8),    // urgent (< 4hrs)
+        address: 'CG Road, Navrangpura', city: 'Ahmedabad', pincode: '380009',
+        phone: '9825112233', notes: 'Fresh morning farsan in hygienic paper boxes with chutney pouches',
+        status: 'available',
+      },
+      {
+        donor: donor._id, donorName: 'Iscon Thaal Restaurant',
+        donorType: 'Restaurant', foodName: 'Kathiyawadi & Gujarati Thali Boxes',
+        quantity: 45, foodType: 'Vegetarian',
+        expiryTime: hrs(5.0),    // moderate (4–8hrs)
+        address: 'SG Highway, Satellite Crossroad', city: 'Ahmedabad', pincode: '380015',
+        phone: '9898223344', notes: 'Complete lunch thali sets (Undhiyu, Rotli, Dal-Bhat)',
+        status: 'available',
+      },
+      {
+        donor: donor._id, donorName: 'Atithi Dining Hall',
+        donorType: 'Restaurant', foodName: 'Gujarati Kadhi, Khichdi & Rotla',
+        quantity: 40, foodType: 'Vegetarian',
+        expiryTime: hrs(6.0),    // moderate (4–8hrs)
+        address: 'Judges Bungalow Road, Bodakdev', city: 'Ahmedabad', pincode: '380054',
+        phone: '9712556677',
+        status: 'claimed',
+        claimedBy: ngo._id,
+        claimedAt: ago(0.5),
+      },
+      {
+        donor: donor._id, donorName: 'Gwalbhog Banquets',
+        donorType: 'Banquet Hall', foodName: 'Royal Khichdi, Dal Baati & Sweets',
+        quantity: 50, foodType: 'Vegetarian',
+        expiryTime: hrs(18.0),   // safe (> 8hrs)
+        address: 'Sindhu Bhavan Road (SBR)', city: 'Ahmedabad', pincode: '380059',
+        phone: '9824334455', notes: 'Dry farsan & packed sweets with long shelf life',
+        status: 'available',
+      },
+
+      // ════ PUNE ════
       {
         donor: donor._id, donorName: 'Spice Garden Restaurant',
-        donorType: 'Restaurant', foodName: 'Dal Makhani + Roti',
+        donorType: 'Restaurant', foodName: 'Dal Makhani + Fresh Roti',
         quantity: 40, foodType: 'Vegetarian',
-        expiryTime: hrs(1.5),    // urgent (< 4hrs)
-        address: '12, Sector 12, Camp', city: 'Pune', pincode: '411001',
-        phone: '9876543210', notes: 'Freshly cooked, handle with care',
-        status: 'available',
-      },
-      {
-        donor: donor._id, donorName: 'Mumbai Dabba Co.',
-        donorType: 'Catering Service', foodName: 'Veg + Non-Veg Thali',
-        quantity: 35, foodType: 'Mixed',
-        expiryTime: hrs(2.5),    // urgent (< 4hrs)
-        address: 'Andheri East, Plot 4', city: 'Mumbai', pincode: '400069',
-        phone: '9712345678', notes: 'Hot meal boxes ready for immediate pickup',
-        status: 'available',
-      },
-      {
-        donor: donor._id, donorName: 'Corner Snack Center',
-        donorType: 'Café', foodName: 'Fresh Samosas & Kachori',
-        quantity: 50, foodType: 'Vegetarian',
-        expiryTime: hrs(3.0),    // urgent (< 4hrs)
-        address: 'FC Road, Shop 14', city: 'Pune', pincode: '411004',
-        phone: '9822114455', notes: 'Freshly fried snacks in paper trays',
-        status: 'available',
-      },
-      {
-        donor: donor._id, donorName: 'Taj Catering',
-        donorType: 'Hotel', foodName: 'Paneer Dishes + Naan',
-        quantity: 45, foodType: 'Vegetarian',
         expiryTime: hrs(2.0),    // urgent (< 4hrs)
-        address: 'Colaba, Near Gateway', city: 'Mumbai', pincode: '400001',
-        phone: '9899001122', notes: 'High-quality hotel surplus',
+        address: '12, Sector 12, Camp', city: 'Pune', pincode: '411001',
+        phone: '9876543210', notes: 'Freshly cooked meal boxes',
+        status: 'available',
+      },
+      {
+        donor: donor._id, donorName: 'Royal Kitchens',
+        donorType: 'Restaurant', foodName: 'Paneer Butter Masala & Jeera Rice',
+        quantity: 35, foodType: 'Vegetarian',
+        expiryTime: hrs(3.5),    // urgent (< 4hrs)
+        address: 'Viman Nagar, Lane 3', city: 'Pune', pincode: '411014',
+        phone: '9844556677',
         status: 'in_transit',
         claimedBy: ngo._id,
         claimedAt: ago(1),
@@ -119,165 +148,96 @@ async function seed() {
         assignedAt: ago(0.5),
       },
       {
-        donor: donor._id, donorName: 'Royal Kitchens',
-        donorType: 'Restaurant', foodName: 'Egg Curry & Jeera Rice',
-        quantity: 30, foodType: 'Non-Vegetarian',
-        expiryTime: hrs(3.5),    // urgent (< 4hrs)
-        address: 'Viman Nagar, Lane 3', city: 'Pune', pincode: '411014',
-        phone: '9844556677',
-        status: 'claimed',
-        claimedBy: ngo._id,
-        claimedAt: ago(0.2),
-      },
-
-      // ── MODERATE (4 – 8 hours) ──────────────────────
-      {
-        donor: donor._id, donorName: 'Hotel Samrat',
-        donorType: 'Hotel', foodName: 'Hyderabadi Chicken Biryani',
-        quantity: 50, foodType: 'Non-Vegetarian',
-        expiryTime: hrs(5.5),    // moderate (4–8hrs)
-        address: 'Civil Lines, Near Station', city: 'Pune', pincode: '411002',
-        phone: '9812345678', notes: 'Packed in sealed aluminium containers',
-        status: 'available',
-      },
-      {
         donor: donor._id, donorName: 'North Flavors Diner',
-        donorType: 'Restaurant', foodName: 'Rajma Chawal + Salad',
+        donorType: 'Restaurant', foodName: 'Rajma Chawal + Fresh Salad',
         quantity: 45, foodType: 'Vegetarian',
-        expiryTime: hrs(6.0),    // moderate (4–8hrs)
-        address: 'Kothrud, Paud Road', city: 'Pune', pincode: '411038',
-        phone: '9766554433', notes: 'Cleanly packed, rich protein meal',
-        status: 'available',
-      },
-      {
-        donor: donor._id, donorName: 'Green Valley Hostel',
-        donorType: 'Hostel / PG', foodName: 'Mixed Veg + Chapati',
-        quantity: 60, foodType: 'Vegetarian',
         expiryTime: hrs(6.5),    // moderate (4–8hrs)
-        address: 'MG Road, Plot 7', city: 'Pune', pincode: '411003',
-        phone: '9856789012', notes: 'Nutritious hostel dinner surplus',
+        address: 'Kothrud, Paud Road', city: 'Pune', pincode: '411038',
+        phone: '9766554433',
         status: 'available',
       },
-      {
-        donor: donor._id, donorName: 'Dakshin Delights',
-        donorType: 'Cafeteria', foodName: 'Idli, Vada & Sambar',
-        quantity: 40, foodType: 'Vegan',
-        expiryTime: hrs(7.0),    // moderate (4–8hrs)
-        address: 'Hinjewadi Phase 1', city: 'Pune', pincode: '411057',
-        phone: '9833445566', notes: 'Warm tiffin items with coconut chutney',
-        status: 'available',
-      },
-      {
-        donor: donor._id, donorName: 'BakeHouse Express',
-        donorType: 'Bakery', foodName: 'Assorted Croissants & Muffins',
-        quantity: 35, foodType: 'Bakery',
-        expiryTime: hrs(7.5),    // moderate (4–8hrs)
-        address: 'Baner Road, Shop 12', city: 'Pune', pincode: '411045',
-        phone: '9722334455',
-        status: 'claimed',
-        claimedBy: ngo._id,
-        claimedAt: ago(0.4),
-      },
-
-      // ── SAFE (> 8 hours & Multi-Day Items) ──────────
-      {
-        donor: donor._id, donorName: 'BITS College Canteen',
-        donorType: 'Cafeteria', foodName: 'Wraps & Granola Bars',
-        quantity: 80, foodType: 'Vegan',
-        expiryTime: hrs(12.0),   // safe (> 8hrs)
-        address: 'BITS Campus, Pilani', city: 'Pilani', pincode: '333031',
-        phone: '9634567890', notes: 'Individually wrapped snacks',
-        status: 'available',
-      },
-      {
-        donor: donor._id, donorName: 'Daily Breads Bakery',
-        donorType: 'Bakery', foodName: 'Assorted Artisanal Breads & Buns',
-        quantity: 60, foodType: 'Bakery',
-        expiryTime: hrs(18.0),   // safe (> 8hrs)
-        address: 'MG Road, Shop 7', city: 'Bangalore', pincode: '560001',
-        phone: '9741234567', notes: 'Freshly baked day-old items',
-        status: 'available',
-      },
-      {
-        donor: donor._id, donorName: 'FarmFresh Co-op',
-        donorType: 'Grocery Store', foodName: 'Fresh Farm Apples & Oranges (1 Day)',
-        quantity: 100, foodType: 'Fruits & Produce',
-        expiryTime: days(1),     // 24 hours / 1 day
-        address: 'Azad Market, Block C', city: 'Delhi', pincode: '110006',
-        phone: '9811223344', notes: 'Sorted, clean seasonal fruit crates',
-        status: 'available',
-      },
-      {
-        donor: donor._id, donorName: 'Amul Dairy Hub',
-        donorType: 'Grocery Store', foodName: 'Packaged Dairy Milk & Cheese Crates (2 Days)',
-        quantity: 120, foodType: 'Vegetarian',
-        expiryTime: days(2),     // 48 hours / 2 days
-        address: 'Model Colony, Block 4', city: 'Pune', pincode: '411016',
-        phone: '9822331100', notes: 'Refrigerated sealed dairy crates',
-        status: 'available',
-      },
-      {
-        donor: donor._id, donorName: 'Heritage Grains Merchant',
-        donorType: 'Grocery Store', foodName: 'Bulk Basmati Rice & Dal Sacks (3 Days)',
-        quantity: 200, foodType: 'Vegan',
-        expiryTime: days(3),     // 72 hours / 3 days
-        address: 'APMC Market, Gate 2', city: 'Mumbai', pincode: '400705',
-        phone: '9733221100', notes: 'Unopened 10kg grain bags',
-        status: 'available',
-      },
-      {
-        donor: donor._id, donorName: 'Reliance Fresh Mart',
-        donorType: 'Grocery Store', foodName: 'Canned Beans & Vegetable Soups (4 Days)',
-        quantity: 150, foodType: 'Vegan',
-        expiryTime: days(4),     // 96 hours / 4 days
-        address: 'Aundh, Main Road', city: 'Pune', pincode: '411007',
-        phone: '9844112233', notes: 'Sealed commercial cans',
-        status: 'available',
-      },
-      {
-        donor: donor._id, donorName: 'Britannia Wholesale',
-        donorType: 'Bakery', foodName: 'Dry Biscuit & Cookie Cartons (5 Days)',
-        quantity: 180, foodType: 'Bakery',
-        expiryTime: days(5),     // 120 hours / 5 days
-        address: 'Hadapsar Industrial Estate', city: 'Pune', pincode: '411028',
-        phone: '9855667788', notes: 'Bulk factory sealed snack boxes',
-        status: 'available',
-      },
-      {
-        donor: donor._id, donorName: 'Dabur Organic Depot',
-        donorType: 'Grocery Store', foodName: 'Pure Honey & Fruit Jam Jars (7 Days)',
-        quantity: 90, foodType: 'Vegetarian',
-        expiryTime: days(7),     // 168 hours / 7 days (1 week)
-        address: 'Swargate Market', city: 'Pune', pincode: '411042',
-        phone: '9866778899', notes: 'Sealed glass jars with long shelf life',
-        status: 'available',
-      },
-      {
-        donor: donor._id, donorName: 'Healthy Greens Co.',
-        donorType: 'Restaurant', foodName: 'Organic Salad Bowls (2 Days)',
-        quantity: 25, foodType: 'Vegan',
-        expiryTime: days(2),
-        address: 'Kalyani Nagar, Hub 5', city: 'Pune', pincode: '411006',
-        phone: '9877889900',
-        status: 'claimed',
-        claimedBy: ngo._id,
-        claimedAt: ago(0.8),
-      },
-
-      // ── DELIVERED (rescued milestone) ──────────────
       {
         donor: donor._id, donorName: 'Skyline Banquet Hall',
         donorType: 'Banquet Hall', foodName: 'Wedding Feast Special Leftovers',
         quantity: 150, foodType: 'Mixed',
-        expiryTime: ago(2),      // delivered
+        expiryTime: ago(2),      // delivered milestone
         address: 'Baner Road, Hall 2', city: 'Pune', pincode: '411045',
-        phone: '9823456789', notes: 'Delivered to Shelter Home 4',
+        phone: '9823456789', notes: 'Delivered to Community Shelter 4',
         status: 'delivered',
         claimedBy: ngo._id,
         claimedAt: ago(5),
         volunteer: volunteer._id,
         assignedAt: ago(4),
         deliveredAt: ago(3),
+      },
+
+      // ════ MUMBAI ════
+      {
+        donor: donor._id, donorName: 'Mumbai Dabba Co.',
+        donorType: 'Catering Service', foodName: 'Executive Meal Boxes (Veg/Non-Veg)',
+        quantity: 35, foodType: 'Mixed',
+        expiryTime: hrs(2.2),    // urgent (< 4hrs)
+        address: 'Andheri East, Plot 4', city: 'Mumbai', pincode: '400069',
+        phone: '9712345678',
+        status: 'available',
+      },
+      {
+        donor: donor._id, donorName: 'Taj Banquet Catering',
+        donorType: 'Hotel', foodName: 'Gourmet North Indian & Continental Dinner',
+        quantity: 45, foodType: 'Vegetarian',
+        expiryTime: hrs(5.5),    // moderate (4–8hrs)
+        address: 'Colaba, Near Gateway', city: 'Mumbai', pincode: '400001',
+        phone: '9899001122',
+        status: 'available',
+      },
+      {
+        donor: donor._id, donorName: 'Heritage Grains Merchant',
+        donorType: 'Grocery Store', foodName: 'Bulk Basmati Rice & Dal Sacks (3 Days)',
+        quantity: 180, foodType: 'Vegan',
+        expiryTime: days(3),     // safe (multi-day)
+        address: 'APMC Market, Gate 2', city: 'Mumbai', pincode: '400705',
+        phone: '9733221100', notes: 'Unopened 10kg grain bags in sealed condition',
+        status: 'available',
+      },
+
+      // ════ DELHI NCR ════
+      {
+        donor: donor._id, donorName: 'Cyber Hub Cafeteria',
+        donorType: 'Cafeteria', foodName: 'Organic Grain Bowls & Wraps',
+        quantity: 40, foodType: 'Vegan',
+        expiryTime: hrs(6.0),    // moderate (4–8hrs)
+        address: 'DLF Cyber City, Sector 24', city: 'Delhi', pincode: '122002',
+        phone: '9811223344',
+        status: 'available',
+      },
+      {
+        donor: donor._id, donorName: 'FarmFresh Co-op',
+        donorType: 'Grocery Store', foodName: 'Fresh Farm Apples & Oranges (1 Day)',
+        quantity: 80, foodType: 'Fruits & Produce',
+        expiryTime: days(1),     // safe (24 hours)
+        address: 'Azad Market, Block C', city: 'Delhi', pincode: '110006',
+        phone: '9811998877',
+        status: 'available',
+      },
+
+      // ════ BENGALURU & PILANI ════
+      {
+        donor: donor._id, donorName: 'Daily Breads Bakery',
+        donorType: 'Bakery', foodName: 'Artisanal Sourdough & Sandwich Buns',
+        quantity: 50, foodType: 'Bakery',
+        expiryTime: hrs(18.0),   // safe (> 8hrs)
+        address: '100ft Road, Indiranagar', city: 'Bangalore', pincode: '560038',
+        phone: '9741234567',
+        status: 'available',
+      },
+      {
+        donor: donor._id, donorName: 'BITS College Dining Hall',
+        donorType: 'Cafeteria', foodName: 'Nutritious Student Mess Dinner Surplus',
+        quantity: 70, foodType: 'Vegetarian',
+        expiryTime: hrs(12.0),   // safe (> 8hrs)
+        address: 'BITS Campus, Pilani', city: 'Pilani', pincode: '333031',
+        phone: '9634567890',
+        status: 'available',
       },
     ]
 

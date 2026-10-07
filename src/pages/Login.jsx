@@ -7,9 +7,9 @@ import { getErrorMessage } from '../utils/errorHandler'
 import { getRoleRoute } from '../utils/roleRoutes'
 
 const DEMO_ACCOUNTS = [
-  { label: 'Donor', icon: 'restaurant', email: 'donor@demo.com', password: 'demo1234', role: 'donor', firstName: 'Rohan', lastName: 'Kumar', orgName: "Rohan's Kitchen", phone: '9000000002', city: 'Pune', pincode: '411001' },
-  { label: 'NGO', icon: 'apartment', email: 'ngo@demo.com', password: 'demo1234', role: 'ngo', firstName: 'Seva', lastName: 'Foundation', orgName: 'Seva Foundation', phone: '9000000003', city: 'Pune', pincode: '411002' },
-  { label: 'Volunteer', icon: 'directions_bike', email: 'volunteer@demo.com', password: 'demo1234', role: 'volunteer', firstName: 'Aman', lastName: 'Singh', orgName: '', phone: '9000000004', city: 'Pune', pincode: '411003' },
+  { label: 'Donor', icon: 'restaurant', email: 'donor@demo.com', password: 'demo1234', role: 'donor', firstName: 'Rohan', lastName: 'Kumar', orgName: "The Grand Bhagwati Banquets", phone: '9000000002', city: 'Ahmedabad', pincode: '380054' },
+  { label: 'NGO', icon: 'apartment', email: 'ngo@demo.com', password: 'demo1234', role: 'ngo', firstName: 'Sarthi', lastName: 'Foundation', orgName: 'Sarthi Foundation Ahmedabad', phone: '9000000003', city: 'Ahmedabad', pincode: '380015' },
+  { label: 'Volunteer', icon: 'directions_bike', email: 'volunteer@demo.com', password: 'demo1234', role: 'volunteer', firstName: 'Aman', lastName: 'Patel', orgName: '', phone: '9000000004', city: 'Ahmedabad', pincode: '380015' },
   { label: 'Admin', icon: 'admin_panel_settings', email: 'admin@demo.com', password: 'demo1234', role: 'admin', firstName: 'Elena', lastName: 'Vance', orgName: 'SharePlate HQ', phone: '9000000001', city: 'Mumbai', pincode: '400001' },
 ]
 
@@ -49,7 +49,7 @@ export default function Login() {
   const [loginForm, setLoginForm] = useState({ email: '', password: '' })
   const [regForm, setRegForm] = useState({ firstName: '', lastName: '', email: '', password: '', phone: '', city: '', pincode: '', orgName: '', role: 'donor' })
   const [loading, setLoading] = useState(false)
-  const [demoLoading, setDemoLoading] = useState(null)
+  const [selectedDemo, setSelectedDemo] = useState(null)
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -59,7 +59,28 @@ export default function Login() {
       toast.success(`Welcome back! 🎉`)
       navigate(getRoleRoute(user.role))
     } catch (err) {
-      toast.error(getErrorMessage(err, 'Login failed.'))
+      // Auto-fallback: If a demo account was selected but not in DB yet, auto-register and login!
+      const demoAcc = DEMO_ACCOUNTS.find(a => a.email === loginForm.email && a.password === loginForm.password)
+      if (demoAcc) {
+        try {
+          await api.post('/auth/register', {
+            firstName: demoAcc.firstName,
+            lastName: demoAcc.lastName,
+            email: demoAcc.email,
+            password: demoAcc.password,
+            phone: demoAcc.phone,
+            role: demoAcc.role,
+            orgName: demoAcc.orgName,
+            city: demoAcc.city,
+            pincode: demoAcc.pincode,
+          })
+          const user = await login(demoAcc.email, demoAcc.password)
+          toast.success(`Demo ready! Logged in as ${demoAcc.role} 🎉`)
+          navigate(getRoleRoute(user.role))
+          return
+        } catch {}
+      }
+      toast.error(getErrorMessage(err, 'Login failed. Please check your credentials.'))
     } finally { setLoading(false) }
   }
 
@@ -76,25 +97,11 @@ export default function Login() {
     } finally { setLoading(false) }
   }
 
-  const demoLogin = async (acc) => {
+  // Auto-fill credentials on clicking demo role button
+  const handleSelectDemo = (acc) => {
     setLoginForm({ email: acc.email, password: acc.password })
-    setDemoLoading(acc.label)
-    const id = toast.loading(`Setting up ${acc.label} demo…`)
-    await new Promise(r => setTimeout(r, 600))
-    try {
-      const user = await login(acc.email, acc.password)
-      toast.success(`Logged in as ${acc.role}!`, { id })
-      navigate(getRoleRoute(user.role))
-    } catch {
-      try {
-        await api.post('/auth/register', { firstName: acc.firstName, lastName: acc.lastName, email: acc.email, password: acc.password, phone: acc.phone, role: acc.role, orgName: acc.orgName, city: acc.city, pincode: acc.pincode })
-        const user = await login(acc.email, acc.password)
-        toast.success(`Demo ready! Logged in as ${acc.role} 🎉`, { id })
-        navigate(getRoleRoute(user.role))
-      } catch (err2) {
-        toast.error(getErrorMessage(err2, 'Demo setup failed.'), { id })
-      }
-    } finally { setDemoLoading(null) }
+    setSelectedDemo(acc.label)
+    toast.success(`✨ Auto-filled ${acc.label} credentials! Now click "Sign In" below 🚀`, { id: 'demo-fill' })
   }
 
   return (
@@ -238,32 +245,45 @@ export default function Login() {
                   onChange={e => setLoginForm({...loginForm, email: e.target.value})} placeholder="name@restaurant.com" required />
                 <InputField label="Password" icon="lock" type="password" value={loginForm.password}
                   onChange={e => setLoginForm({...loginForm, password: e.target.value})} placeholder="••••••••" required />
-                <div className="text-right">
-                  <Link to="#" className="text-xs font-semibold hover:underline" style={{ color: '#006948' }}>Forgot password?</Link>
+                <div className="flex items-center justify-between">
+                  {selectedDemo && (
+                    <span className="text-xs font-bold text-[#006948] bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                      ✨ {selectedDemo} credentials filled
+                    </span>
+                  )}
+                  <Link to="#" className="text-xs font-semibold hover:underline ml-auto" style={{ color: '#006948' }}>Forgot password?</Link>
                 </div>
                 <button type="submit" disabled={loading}
-                  className="w-full py-3.5 rounded-full text-sm font-bold text-white transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 mt-2"
+                  className={`w-full py-3.5 rounded-full text-sm font-bold text-white transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 mt-2 ${
+                    selectedDemo ? 'ring-4 ring-emerald-300/60 shadow-lg shadow-emerald-700/20' : ''
+                  }`}
                   style={{ background: 'linear-gradient(135deg, #006948, #00855d)', boxShadow: '0 8px 24px -4px rgba(0,105,72,0.35)' }}>
-                  {loading ? '⏳ Signing In…' : 'Sign In to SharePlate'}
+                  {loading ? '⏳ Signing In…' : selectedDemo ? `Sign In as ${selectedDemo} →` : 'Sign In to SharePlate'}
                 </button>
               </form>
 
-              {/* Demo one-click */}
+              {/* Demo quick auto-fill selection */}
               <div className="mt-6">
-                <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center gap-3 mb-2">
                   <div className="flex-1 h-px" style={{ background: 'rgba(188,202,192,0.4)' }} />
-                  <span className="text-xs text-[#6d7a72]">One-Click Demo</span>
+                  <span className="text-xs text-[#6d7a72] font-semibold">Demo Accounts (Click to Auto-Fill)</span>
                   <div className="flex-1 h-px" style={{ background: 'rgba(188,202,192,0.4)' }} />
                 </div>
+                <p className="text-[11px] text-[#64748b] text-center mb-3">
+                  Click any role below to automatically fill credentials, then click <b>Sign In</b>.
+                </p>
                 <div className="grid grid-cols-2 gap-2">
                   {DEMO_ACCOUNTS.map(acc => (
-                    <button key={acc.label} onClick={() => demoLogin(acc)} disabled={!!demoLoading}
-                      className="flex items-center gap-2 py-2.5 px-3 rounded-xl border text-xs font-semibold transition-all text-left"
-                      style={demoLoading === acc.label
-                        ? { borderColor: '#006948', background: 'rgba(0,105,72,0.08)', color: '#006948' }
+                    <button key={acc.label} type="button" onClick={() => handleSelectDemo(acc)}
+                      className="flex items-center gap-2 py-2.5 px-3 rounded-xl border text-xs font-semibold transition-all text-left group"
+                      style={selectedDemo === acc.label
+                        ? { borderColor: '#006948', background: 'rgba(0,105,72,0.12)', color: '#006948', boxShadow: '0 0 0 2px rgba(0,105,72,0.2)' }
                         : { borderColor: 'rgba(188,202,192,0.5)', background: 'rgba(255,255,255,0.7)', color: '#3d4a42' }}>
-                      <span className="material-symbols-outlined text-base" style={{ color: '#006948' }}>{acc.icon}</span>
-                      {demoLoading === acc.label ? 'Loading…' : `${acc.label} Demo`}
+                      <span className="material-symbols-outlined text-base group-hover:scale-110 transition-transform" style={{ color: '#006948' }}>{acc.icon}</span>
+                      <div className="overflow-hidden">
+                        <div className="font-bold truncate">{acc.label}</div>
+                        <div className="text-[10px] text-[#64748b] truncate">{acc.email}</div>
+                      </div>
                     </button>
                   ))}
                 </div>
