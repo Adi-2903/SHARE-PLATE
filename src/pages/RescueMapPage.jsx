@@ -41,7 +41,7 @@ function SideNav({ active, user }) {
             </div>
             <div>
               <span className="block font-bold text-base tracking-tight" style={{ ...S, color: '#006948' }}>SharePlate</span>
-              <span className="block text-xs text-[#6d7a72]">Food Rescue OS • Map Radar</span>
+              <span className="block text-xs text-[#6d7a72]">Food Rescue OS • Live Map</span>
             </div>
           </Link>
 
@@ -76,7 +76,7 @@ function SideNav({ active, user }) {
                   : { color: '#3d4a42' }}>
                 <span className="material-symbols-outlined text-xl">{l.icon}</span>
                 <span>{l.label}</span>
-                {l.id === 'map' && <span className="ml-auto px-2 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: '#006948' }}>GIS</span>}
+                {l.id === 'map' && <span className="ml-auto px-2 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: '#006948' }}>MAP</span>}
               </Link>
             ))}
           </nav>
@@ -181,12 +181,12 @@ export default function RescueMapPage() {
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border mb-2"
               style={{ background: 'rgba(255,218,214,0.6)', borderColor: 'rgba(186,26,26,0.2)' }}>
               <span className="w-2 h-2 rounded-full animate-ping" style={{ background: '#ba1a1a' }} />
-              <span className="text-xs font-bold" style={{ color: '#ba1a1a' }}>🔴 LIVE GIS RADAR MAP</span>
+              <span className="text-xs font-bold" style={{ color: '#ba1a1a' }}>🔴 LIVE MAP</span>
             </div>
             <h1 className="text-3xl font-extrabold text-[#131b2e] tracking-tight" style={S}>
-              Geographic Food Rescue Radar
+              Live Food Rescue Map
             </h1>
-            <p className="text-[#3d4a42] mt-1 text-sm">Visualizing active surplus food pickup locations & routes in real time.</p>
+            <p className="text-[#3d4a42] mt-1 text-sm">Active surplus food pickup locations across the city — click any pin to see details.</p>
           </div>
 
           <Link to="/donations" className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold text-white shrink-0"
@@ -239,7 +239,7 @@ export default function RescueMapPage() {
         {/* Map Filter Controls */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4 bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-[#131b2e] px-2">Filter Radar:</span>
+            <span className="text-xs font-bold text-[#131b2e] px-2">Filter by priority:</span>
             {[
               { key: 'all', label: 'All Pins', count: counts.all },
               { key: 'urgent', label: '🔴 Urgent Only', count: counts.urgent },
@@ -254,7 +254,7 @@ export default function RescueMapPage() {
           </div>
 
           <div className="text-xs text-[#64748b] font-medium px-2">
-            Showing {filtered.length} locations on live map
+            Showing {filtered.length} active location{filtered.length !== 1 ? 's' : ''} on map
           </div>
         </div>
 
@@ -263,7 +263,7 @@ export default function RescueMapPage() {
           <div className="w-full h-[620px] rounded-2xl bg-white border flex items-center justify-center">
             <div className="text-center">
               <span className="material-symbols-outlined text-5xl animate-spin text-[#006948]">refresh</span>
-              <p className="text-sm text-[#64748b] mt-3 font-semibold">Loading live GIS radar…</p>
+              <p className="text-sm text-[#64748b] mt-3 font-semibold">Loading map…</p>
             </div>
           </div>
         ) : (
