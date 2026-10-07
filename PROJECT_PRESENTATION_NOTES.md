@@ -44,7 +44,7 @@ We have built a **complete, working, production-deployed web application** with 
 | **Database** | MongoDB + Mongoose ODM | MongoDB Atlas (Cloud) |
 | **Authentication** | JWT + bcryptjs | Stateless Token-Based |
 | **Email Pipeline** | Gmail Compose API (Client-Side) | Zero-Config, No SMTP |
-| **Maps / GIS Radar** | Custom Vector GIS Engine (React + SVG) | Zero-API, 100% Offline Demo Ready |
+| **Maps** | Leaflet.js + OpenStreetMap (Free Tiles) | Real Street Map — No API Key Required |
 | **Styling** | Tailwind CSS + Glassmorphism | Responsive + Animated |
 
 ### Key System Capabilities
@@ -52,7 +52,7 @@ We have built a **complete, working, production-deployed web application** with 
 - ✅ **4 distinct user roles** — Donor, NGO, Volunteer, Admin — each with a dedicated dashboard
 - ✅ **Automated urgency priority engine** — classifies donations as Urgent (<4hrs), Moderate (4–8hrs), or Safe (>8hrs) based on expiry time
 - ✅ **Gmail email notification pipeline** — auto-opens Gmail with pre-filled emails to alert NGOs
-- ✅ **Interactive Live Rescue Radar** — zero-API real-time GIS food radar with vector projection, radar sweep, and route simulation
+- ✅ **Interactive Live Rescue Map** — real OpenStreetMap tiles via Leaflet.js, colored donation pins (🔴🟡🟢) with click-to-inspect popups
 - ✅ **Full donation lifecycle tracking** — Available → Claimed → In Transit → Delivered
 - ✅ **Role-based access control** on both frontend and backend
 - ✅ **Cloud-native deployment** — Frontend on Vercel, Backend on Render, Database on MongoDB Atlas
@@ -192,17 +192,17 @@ On the donations board, every donation card has an **"📧 Email Donor via Gmail
 
 ---
 
-## 7. 🗺️ Interactive Live Rescue Radar (Zero-API Custom GIS Engine)
+## 7. 🗺️ Interactive Live Rescue Map (Real OpenStreetMap)
 
-SharePlate features a **custom-built, zero-API interactive real-time food rescue radar map** engineered directly in React & SVG:
+SharePlate features a **real interactive street map** built with **Leaflet.js + OpenStreetMap tiles** — completely free, no API key required:
 
-- **100% Zero-API & Offline Demo Ready** — Zero reliance on third-party map APIs (like Google Maps API or external tile servers). Works completely offline without API billing, API key exposure, or network tile loading delays.
-- **Polar GIS Radar Grid** — Concentric distance rings (3 km, 7 km, 11 km, 15 km limit) with cardinal crosshairs (N, S, E, W) and simulated city road corridors.
-- **Multi-City Hub Switcher (Including Ahmedabad)** — Instant switching across major hubs including **Ahmedabad** (SG Highway, Sindhu Bhavan Road, Bodakdev, Vastrapur, Navrangpura, Manek Chowk, Maninagar), Pune, Mumbai, Delhi NCR, Bengaluru, and Pilani.
-- **Animated 360° Radar Sweep** — A live rotating radar beam scans the geographic sectors, dynamically detecting and illuminating active surplus food pins.
-- **Urgency-Coded Radar Nodes** — Pins color-coded by real-time urgency (🔴 Urgent with pulsing beacons, 🟡 Moderate, 🟢 Safe).
-- **Interactive Dispatch Route Simulation** — Clicking any pin projects an animated vector dispatch transit line from the central NGO depot to the donor location, displaying exact distance (km) and estimated transit time (mins).
-- **Interactive Pin Drawer** — Click-to-inspect displays full food details, servings, donor info, expiry countdown, and direct "Claim Now" execution.
+- **Real Street Map** — Uses OpenStreetMap (OSM) free tile layers. Shows actual streets, landmarks, and neighborhoods — not a simulated grid.
+- **No API Key, No Cost** — OpenStreetMap tiles are entirely free (`https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png`). No Google Maps billing, no quota, no credit card.
+- **Ahmedabad-First Localization** — Map defaults to Ahmedabad city center with donation pins seeded across real local neighborhoods: SG Highway, Sindhu Bhavan Road, Vastrapur Lake, Navrangpura, Manek Chowk, Maninagar, Bodakdev, Motera Stadium.
+- **Color-Coded Donation Pins** — Each active donation appears as a circle pin: 🔴 Red (Urgent <4h), 🟡 Amber (Moderate 4–8h), 🟢 Green (Safe >8h).
+- **Click-to-Inspect Popups** — Clicking any pin opens a clean popup showing food type, address, time remaining, urgency level, quantity, and donor name.
+- **Urgency Legend Card** — A floating legend in the top-right corner shows pin color meanings and total active donation count.
+- **Pan, Zoom, Scroll** — Full standard map interaction: scroll to zoom, drag to pan, all Leaflet controls available.
 
 ---
 
@@ -275,7 +275,7 @@ router.patch('/:id/claim', protect, authorize('ngo', 'admin'), claimDonation);
 | **React Router v6** | Routing | Client-side navigation, protected routes, nested routing |
 | **Axios** | HTTP Client | Promise-based, interceptors, request/response transformation |
 | **Tailwind CSS** | Styling | Utility-first, responsive design, rapid prototyping |
-| **Custom GIS Vector Engine** | Maps & Radar | 100% Zero-API, pure React + SVG, offline demo-ready, animated dispatch routes |
+| **Leaflet.js + OpenStreetMap** | Maps | Real street map, free OSM tiles, no API key, pan/zoom, colored donation pins |
 | **React Hot Toast** | Notifications | Beautiful toast notifications, customizable styling |
 | **Material Symbols** | Icons | Google's latest icon system, variable weight/fill |
 | **Plus Jakarta Sans / Inter** | Typography | Modern, professional Google Fonts |
@@ -421,7 +421,7 @@ SharePlate/
 │   │   └── AdminDashboard.jsx    # Platform monitoring & control
 │   ├── components/               # Reusable UI Components
 │   │   ├── Navbar.jsx            # Navigation bar
-│   │   └── RescueMap.jsx         # Zero-API interactive GIS radar component
+│   │   └── RescueMap.jsx         # Real Leaflet map with OSM tiles & donation pins
 │   ├── context/                  # React Context Providers
 │   │   └── AuthContext.jsx       # Authentication state management
 │   ├── api/                      # API Configuration
@@ -566,9 +566,11 @@ Use this order while presenting to maximize impact:
 
 ### Phase 3: Board & Map (2 min)
 10. Go to the **Donations Board** — show urgency badges, countdown timers, filter pills
-11. Switch to **Live Map Radar view** — show interactive map with donation pins
-12. Click on a donation card and show the **"📧 Email Donor via Gmail"** button
-13. Explain: "Any logged-in user can contact the donor directly through Gmail with one click"
+11. Switch to **Live Rescue Map** — show the real OpenStreetMap with Ahmedabad donation pins
+12. Click on any **map pin** — show the popup with food details, urgency, and time left
+13. Point out the **legend card** (top-right) and the color-coded pin system
+14. Go back to Board and click the **"📧 Email Donor via Gmail"** button on a card
+15. Explain: "Any logged-in user can contact the donor directly through Gmail with one click"
 
 ### Phase 4: NGO Flow (2 min)
 14. **Login as NGO** (`ngo@demo.com` / `demo1234`)
@@ -705,16 +707,17 @@ Authentication, Donor Dashboard, Donation Board, NGO Dashboard, Volunteer Dashbo
 
 1. **Gmail email notification pipeline** — zero-config, zero-cost email alerts using Gmail compose URLs
 2. **Automated urgency priority engine** — real-time classification with countdown timers
-3. **Interactive live rescue radar** — Zero-API custom GIS food radar with vector projection and dispatch route simulation
+3. **Interactive live rescue map** — Real OpenStreetMap via Leaflet.js, no API key, colored donation pins with click-to-inspect popups, Ahmedabad-localized
 4. **Full lifecycle tracking** — from donation posting to delivery confirmation
 5. **Role-based ecosystem** — 4 distinct user roles with dedicated dashboards
 
-### Why didn't you use Google Maps or an external Map API for the rescue map?
+### Why didn't you use Google Maps for the rescue map?
 
-We deliberately engineered a **zero-dependency, self-contained Vector GIS Radar engine** in pure React and SVG for several key engineering reasons:
-1. **Zero API Cost & Key Exposure:** Commercial map APIs (like Google Maps) require credit cards, incur billing costs per tile load, and risk quota exhaustion or API key theft.
-2. **100% Offline Demo Reliability:** Third-party tile servers often fail, throttle, or render blank grey boxes in offline classroom environments or slow college Wi-Fi. Our custom GIS engine loads in 0ms and is completely self-contained.
-3. **Custom Tactical Capabilities:** Off-the-shelf map libraries are generic. Our custom radar engine includes an animated 360° radar sweep, polar distance rings (3–15 km), city sector landmarks, and animated volunteer dispatch route vectors tailored specifically for emergency food rescue operations.
+We used **Leaflet.js with OpenStreetMap (OSM) free tiles** — which gives us a real, interactive street map without any API key or billing:
+1. **Completely Free:** OpenStreetMap tiles are community-maintained and free forever. Google Maps requires credit card registration and charges per tile load after a quota.
+2. **No API Key Required:** Leaflet with OSM tiles works out-of-the-box — no OAuth, no key setup, no `.env` variable needed, zero risk of key expiry or quota exceeded errors during a live demo.
+3. **Real Street Map:** The map shows actual Ahmedabad streets, landmarks, and neighborhoods. Donation pins appear on real geographic locations (SG Highway, Manek Chowk, Vastrapur, etc.) making the demo look authentic and locally relevant.
+4. **Industry-Standard Library:** Leaflet.js is the most widely-used open-source mapping library, used by Wikipedia, GitHub, and thousands of production apps worldwide.
 
 ### Why did you use Render for backend instead of Vercel?
 
@@ -742,7 +745,7 @@ On the login page, we built a **guided demonstration workflow**:
 
 ### What is the tech stack?
 
-**Frontend:** React 18, Vite, React Router, Axios, Tailwind CSS, Custom SVG GIS Radar, React Hot Toast
+**Frontend:** React 18, Vite, React Router, Axios, Tailwind CSS, Leaflet.js + OpenStreetMap, React Hot Toast
 **Backend:** Node.js, Express.js, MongoDB, Mongoose, JWT, bcryptjs
 **Deployment:** Vercel (frontend), Render (backend), MongoDB Atlas (database)
 **Integration:** Gmail Compose API for email notifications
@@ -751,7 +754,7 @@ On the login page, we built a **guided demonstration workflow**:
 
 ## 21. 🎙️ One-Minute Elevator Pitch
 
-SharePlate is a **full-stack food rescue operating system** built with the MERN stack. It connects food donors — like restaurants, hotels, and cafeterias — with NGOs and volunteers through a real-time digital platform. Donors can post surplus food in under 60 seconds using our 3-step wizard, and the system **automatically opens Gmail** with a pre-filled alert email to all nearby NGOs — the donor just clicks Send. NGOs can browse donations on a **live board with urgency-based priority** or use the **interactive rescue map** to find food near them. Volunteers handle last-mile pickup and delivery. Admins monitor everything. The entire lifecycle — from posting to delivery — is tracked with **5 status stages**. We built an **automated priority engine** that classifies food urgency in real-time with countdown timers. The frontend is deployed on **Vercel** with global CDN, the backend runs on **Render** as an always-on API server, and the database is on **MongoDB Atlas**. Security includes JWT authentication, bcrypt password hashing, and role-based access control across **15+ REST API endpoints**. SharePlate is not just a web app — it's a practical, deployable solution for reducing India's food waste crisis.
+SharePlate is a **full-stack food rescue operating system** built with the MERN stack. It connects food donors — like restaurants, hotels, and cafeterias — with NGOs and volunteers through a real-time digital platform. Donors can post surplus food in under 60 seconds using our 3-step wizard, and the system **automatically opens Gmail** with a pre-filled alert email to all nearby NGOs — the donor just clicks Send. NGOs can browse donations on a **live board with urgency-based priority** or use the **interactive Leaflet rescue map** — a real OpenStreetMap showing actual Ahmedabad streets with color-coded donation pins — to find food near them. Volunteers handle last-mile pickup and delivery. Admins monitor everything. The entire lifecycle — from posting to delivery — is tracked with **5 status stages**. We built an **automated priority engine** that classifies food urgency in real-time with countdown timers. The frontend is deployed on **Vercel** with global CDN, the backend runs on **Render** as an always-on API server, and the database is on **MongoDB Atlas**. Security includes JWT authentication, bcrypt password hashing, and role-based access control across **15+ REST API endpoints**. SharePlate is not just a web app — it's a practical, deployable solution for reducing India's food waste crisis.
 
 ---
 
